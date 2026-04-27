@@ -98,6 +98,15 @@
   .lb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:999; align-items:center; justify-content:center; cursor:zoom-out; }
   .lb-overlay.open { display:flex; }
   .lb-img { max-width:90vw; max-height:90vh; border-radius:8px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+
+  /* Validation toast */
+  .val-toast { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1A1A1A; color:white; border-radius:12px; padding:14px 20px; max-width:420px; width:calc(100% - 32px); z-index:200; box-shadow:0 4px 20px rgba(0,0,0,.25); }
+  .val-toast.show { display:block; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+  .val-toast-hdr { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--y); margin-bottom:6px; }
+  .val-toast-list { font-size:12px; color:#ddd; line-height:1.7; }
+  .val-toast-close { margin-left:auto; background:none; border:none; color:#aaa; cursor:pointer; font-size:18px; line-height:1; padding:0 2px; }
+  .val-toast-close:hover { color:white; }
   .sugg { background: #F5F0FF; border-left: 3px solid #8B6FD4; border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 11.5px; color: #3D2A7A; white-space: pre-line; line-height: 1.5; }
   .cmnt { margin-top: 9px; }
   .cmnt label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 4px; }
@@ -143,6 +152,16 @@
   .btn-dk:hover { background: #333; }
   @media print { header{position:relative} .btn{display:none} .item-detail{display:block!important} .pdrop{display:none} }
 </style>
+<!-- Validation toast -->
+<div class="val-toast" id="valToast">
+  <div class="val-toast-hdr">
+    <span>⚠️</span>
+    <span id="valToastMsg"></span>
+    <button class="val-toast-close" onclick="document.getElementById('valToast').classList.remove('show')">×</button>
+  </div>
+  <div class="val-toast-list" id="valToastList"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -179,7 +198,7 @@
   <div class="prog-wrap">
     <span data-i18n="itensEval">Ítems evaluados</span>
     <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
-    <div class="prog-count" id="pCount">0 / 17</div>
+    <div class="prog-count" id="pCount">0 / 18</div>
   </div>
 </div>
 
@@ -337,24 +356,27 @@ const ITEMS_PT = {
       h:'Teste manual' },
     { n:12, t:'Fundo',                  s:'Placa lisa no fundo',
       c:'Verificar se o equipamento tem a placa lisa conforme as especificações do protótipo.',
-      h:'Avaliação visual' }
+      h:'Avaliação visual' },
+    { n:13, t:'Acoplamento — Rebocador', s:'Teste de acoplamento no Rebocador/Tugger',
+      c:'Ruim: O engate não acopla ou desacopla corretamente no Rebocador/Tugger. Requer força excessiva ou apresenta folga excessiva.\n\nIntermediário: O acoplamento funciona mas apresenta dificuldades menores (atrito alto, alinhamento difícil, leve folga).\n\nExcelente: O engate acopla e desacopla com suavidade e segurança. Sem folga excessiva, sem necessidade de força anormal.',
+      h:'Teste manual · Rebocador/Tugger disponível' }
   ],
   es: [
-    { n:13, t:'Soldas',                 s:'Solda contínua e uniforme',
+    { n:14, t:'Soldas',                 s:'Solda contínua e uniforme',
       c:'Solda contínua e uniforme, sem porosidade, rachaduras ou respingos excessivos.\nSem bordas cortantes que representem risco de acidentes.',
       h:'Avaliação visual' },
-    { n:14, t:'Rodas — Tamanho',        s:'Rodas de 6"',
+    { n:15, t:'Rodas — Tamanho',        s:'Rodas de 6"',
       c:'Verificar se as rodas têm tamanho de 6" conforme as especificações.',
       h:'Avaliação visual' },
-    { n:15, t:'Tubos Estruturais',      s:'Tubo padrão: 25 mm × 25 mm',
+    { n:16, t:'Tubos Estruturais',      s:'Tubo padrão: 25 mm × 25 mm',
       c:'Os tubos estruturais devem ter medidas de 25 mm × 25 mm.',
       h:'Régua do celular · Fita métrica · Trena' },
-    { n:16, t:'Malha',                  s:'Malha padrão: 4 mm de diâmetro',
+    { n:17, t:'Malha',                  s:'Malha padrão: 4 mm de diâmetro',
       c:'As malhas devem ter 4 milímetros de diâmetro.',
       h:'Calibre / Paquímetro (solicitar à manutenção)' }
   ],
   pi: [
-    { n:17, t:'Cor da Pintura',         s:'Cinza Escuro',
+    { n:18, t:'Cor da Pintura',         s:'Cinza Escuro',
       c:'Verificar se a cor da pintura é Cinza Escuro conforme as especificações do protótipo.',
       h:'Avaliação visual' }
   ]
@@ -436,31 +458,34 @@ const ITEMS = {
       h:'Prueba manual', v:[{n:'12-Freno BK',u:'https://drive.google.com/file/d/162f_tvom4Hu4FdFqSLx2QuDDUwqLPAvP/preview'}] },
     { n:12, t:'Fondo',                      s:'Placa lisa en el fondo',
       c:'Verificar si el equipo tiene la placa lisa conforme a las especificaciones del prototipo.',
-      h:'Evaluación visual', v:[] }
+      h:'Evaluación visual', v:[] },
+    { n:13, t:'Acoplamiento — Tugger',      s:'Prueba de acoplamiento en el Rebocador/Tugger',
+      c:'Malo: El enganche no acopla o desacopla correctamente del Rebocador/Tugger. Requiere fuerza excesiva o presenta juego excesivo.\n\nIntermedio: El acoplamiento funciona pero presenta dificultades menores (fricción alta, alineación difícil, juego leve).\n\nExcelente: El enganche acopla y desacopla con suavidad y seguridad. Sin juego excesivo, sin necesidad de fuerza anormal.',
+      h:'Prueba manual · Rebocador/Tugger disponible', v:[] }
   ],
   es: [
-    { n:13, t:'Soldaduras',            s:'Soldadura continua y uniforme',
+    { n:14, t:'Soldaduras',            s:'Soldadura continua y uniforme',
       c:'Soldadura continua y uniforme, sin porosidad, grietas o salpicaduras excesivas.\nSin bordes cortantes que representen riesgo de accidentes.',
       h:'Evaluación visual', v:[] },
-    { n:14, t:'Ruedas — Tamaño',       s:'Ruedas de 6"',
+    { n:15, t:'Ruedas — Tamaño',       s:'Ruedas de 6"',
       c:'Verificar si las ruedas tienen tamaño de 6" conforme a las especificaciones.',
       h:'Evaluación visual', v:[] },
-    { n:15, t:'Tubos Estructurales',   s:'Tubo estándar: 25 mm × 25 mm',
+    { n:16, t:'Tubos Estructurales',   s:'Tubo estándar: 25 mm × 25 mm',
       c:'Los tubos estructurales deben tener medidas de 25 mm × 25 mm.',
       h:'Regla del celular · Cinta métrica · Flexómetro', v:[{n:'13-Tubos BK',u:'https://drive.google.com/file/d/1KPjKQrPnrrBJMsX1x7-4L-3udDgAnWg6/preview'}] },
-    { n:16, t:'Malla',                 s:'Malla estándar: 4 mm de diámetro',
+    { n:17, t:'Malla',                 s:'Malla estándar: 4 mm de diámetro',
       c:'Las mallas deben tener 4 milímetros de diámetro.',
       h:'Calibre / Pie de rey (solicitar a mantenimiento)', v:[] }
   ],
   pi: [
-    { n:17, t:'Color de Pintura', s:'Gris Oscuro',
+    { n:18, t:'Color de Pintura', s:'Gris Oscuro',
       c:'Verificar si el color de la pintura es Gris Oscuro conforme a las especificaciones del prototipo.',
       h:'Evaluación visual', v:[] }
   ]
 };
 
 // ── State ──
-const R = { eq: new Array(12).fill(null), es: new Array(4).fill(null), pi: new Array(1).fill(null) };
+const R = { eq: new Array(13).fill(null), es: new Array(4).fill(null), pi: new Array(1).fill(null) };
 const SM = { malo:.25, intermedio:.65, excelente:1 };
 
 
@@ -608,8 +633,8 @@ function calcAll() {
   setBar('eq', eq); setBar('es', es);
 
   const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
-  document.getElementById('pFill').style.width = (done/17*100)+'%';
-  document.getElementById('pCount').textContent = done+' / 17';
+  document.getElementById('pFill').style.width = (done/18*100)+'%';
+  document.getElementById('pCount').textContent = done+' / 18';
 
   let fin = null;
   if (eq!==null && es!==null) fin = eq*.6 + es*.4;
@@ -668,11 +693,34 @@ function exportData() {
 }
 
 // ── Finalize + Save to Supabase ──
+function showValidationToast(msg, items) {
+  document.getElementById('valToastMsg').textContent = msg;
+  document.getElementById('valToastList').innerHTML = items.map(i => '• ' + i).join('<br>');
+  const t = document.getElementById('valToast');
+  t.classList.remove('show');
+  void t.offsetWidth; // force reflow
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 6000);
+  // Scroll to first problematic item in the list (if it mentions a number)
+  const firstNum = items[0]?.match(/^(\d+)\./);
+  if (firstNum) {
+    const idx = parseInt(firstNum[1]) - 1;
+    const el = document.querySelectorAll('.item')[idx];
+    if (el) {
+      el.querySelector('.item-detail')?.classList.add('open');
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  }
+}
+
 async function finalize() {
   const t = T[LANG];
   const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
-  if (done < 17) {
-    alert((LANG==='pt' ? 'Faltam ' : 'Faltan ') + (17-done) + (LANG==='pt' ? ' item(ns) por avaliar.' : ' ítem(s) por evaluar.'));
+  if (done < 18) {
+    showValidationToast(
+      LANG==='pt' ? 'Avaliação incompleta' : 'Evaluación incompleta',
+      [LANG==='pt' ? 'Faltam '+(18-done)+' item(ns) por avaliar.' : 'Faltan '+(18-done)+' ítem(s) por evaluar.']
+    );
     return;
   }
 
@@ -683,46 +731,111 @@ async function finalize() {
     if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
   });
 
+  // ── Validate: items rated Malo must have comment or photo ──
+  const allItems = document.querySelectorAll('.item');
+  const secs = [
+    { key:'eq', offset:0  },
+    { key:'es', offset:13 },
+    { key:'pi', offset:17 }
+  ];
+  const missing = [];
+  secs.forEach(({ key, offset }) => {
+    R[key].forEach((val, i) => {
+      if (val !== 'malo') return;
+      const el = allItems[offset + i];
+      if (!el) return;
+      const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
+      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0;
+      if (!hasComment && !hasPhoto) {
+        const title = el.querySelector('.item-title')?.textContent || ('Item ' + (offset+i+1));
+        missing.push((offset+i+1) + '. ' + title);
+      }
+    });
+  });
+  if (missing.length > 0) {
+    showValidationToast(
+      LANG==='pt'
+        ? 'Itens com Ruim precisam de comentário ou foto:'
+        : 'Ítems con Malo requieren comentario o foto:',
+      missing
+    );
+    return;
+  }
+
   // Build payload
   const eq = avg('eq'), es = avg('es');
   const fin = eq !== null && es !== null ? eq*.6 + es*.4 : eq !== null ? eq*.6 : es*.4;
   const p = Math.round(fin * 100);
   const vd = T[LANG].verdicts;
   const veredicto = p<=40 ? vd.rep : p<=80 ? vd.aj : vd.ap;
+  const evaluador = document.getElementById('evaluador').value || null;
+  const sitio = document.getElementById('sitio').value || null;
 
   const payload = {
-    evaluador: document.getElementById('evaluador').value || null,
+    evaluador: evaluador,
     fecha: document.getElementById('fecha').value || null,
-    sitio: document.getElementById('sitio').value || null,
+    sitio: sitio,
     idioma: LANG,
     score_eq: eq !== null ? Math.round(eq*100) : null,
     score_es: es !== null ? Math.round(es*100) : null,
     score_final: p,
     veredicto: veredicto,
     ratings: { eq: R.eq, es: R.es, pi: R.pi },
-    comentarios: comentarios
+    comentarios: comentarios,
+    fotos: []
   };
 
   // Show saving indicator
   const btn = document.querySelector('[data-i18n="finalizar"]');
   const originalText = btn.textContent;
-  btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
+  btn.textContent = LANG==='pt' ? 'Enviando...' : 'Enviando...';
   btn.disabled = true;
 
   try {
+    // ── Upload photos to Supabase Storage ──
+    const photoPreviews = document.querySelectorAll('.ppreview img');
+    if (photoPreviews.length > 0) {
+      btn.textContent = LANG==='pt' ? 'Enviando fotos...' : 'Subiendo fotos...';
+      const uploadPromises = Array.from(photoPreviews).map(async (img, i) => {
+        try {
+          const src = img.src;
+          if (!src.startsWith('data:')) return;
+          const arr = src.split(',');
+          const mime = arr[0].match(/:(.*?);/)[1];
+          const ext = mime.split('/')[1] || 'jpg';
+          const bstr = atob(arr[1]);
+          const u8arr = new Uint8Array(bstr.length);
+          for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
+          const blob = new Blob([u8arr], { type: mime });
+          const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
+          const path = `${safeSitio}/${Date.now()}_${i}.${ext}`;
+          const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
+          if (!upErr) {
+            const { data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path);
+            payload.fotos.push(publicUrl);
+          }
+        } catch(e) { console.warn('Photo upload failed:', e); }
+      });
+      await Promise.all(uploadPromises);
+    }
+
+    btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
     const { error } = await _sb.from('evaluaciones').insert([payload]);
     if (error) throw error;
 
-    // Success
-    btn.textContent = LANG==='pt' ? '✓ Salvo!' : '✓ Guardado!';
+    // ── Success: redirect to thank-you page ──
+    btn.textContent = LANG==='pt' ? '✓ Enviado!' : '✓ Enviado!';
     btn.style.background = 'var(--ok)';
-    document.querySelector('.score-panel').scrollIntoView({behavior:'smooth'});
-
     setTimeout(() => {
-      btn.textContent = originalText;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 3000);
+      const params = new URLSearchParams({
+        lang: LANG,
+        score: p,
+        veredicto: veredicto,
+        evaluador: evaluador || '',
+        sitio: sitio || ''
+      });
+      window.location.href = 'obrigado.html?' + params.toString();
+    }, 900);
 
   } catch(err) {
     console.error(err);
