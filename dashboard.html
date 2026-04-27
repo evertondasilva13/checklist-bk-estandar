@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard BK Estándar — Mercado Libre</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root {
+    --y: #FFE600; --yd: #E6CF00; --dk: #1A1A1A;
+    --g: #666; --lt: #F5F5F5; --br: #E0E0E0;
+    --bad: #E8303F; --mid: #FF7733; --ok: #00A650;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lt); color: var(--dk); }
+
+  header { background: var(--y); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 58px; box-shadow: 0 2px 6px rgba(0,0,0,.12); position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--dk); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--y); font-weight: 900; font-size: 13px; }
+  .logo-text { font-size: 16px; font-weight: 800; color: var(--dk); }
+  .logo-sub { font-size: 11px; color: #555; }
+  .hdr-right { display: flex; align-items: center; gap: 10px; }
+  .hdr-btn { background: var(--dk); color: var(--y); border: none; padding: 7px 16px; border-radius: 18px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+  .hdr-btn:hover { background: #333; }
+  .refresh-btn { background: transparent; border: 2px solid var(--dk); color: var(--dk); padding: 5px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .refresh-btn:hover { background: rgba(0,0,0,.06); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 22px 16px 60px; }
+
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  @media(max-width:700px){ .kpi-grid{ grid-template-columns: repeat(2,1fr); } }
+  .kpi { background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); border-top: 4px solid var(--y); }
+  .kpi-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 6px; }
+  .kpi-val { font-size: 32px; font-weight: 800; color: var(--dk); line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--g); margin-top: 4px; }
+
+  /* Charts row */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+  @media(max-width:700px){ .charts-row{ grid-template-columns: 1fr; } }
+  .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h3 { font-size: 13px; font-weight: 700; margin-bottom: 16px; color: var(--dk); }
+
+  /* Filters */
+  .filters { background: white; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .filter-field { display: flex; flex-direction: column; gap: 4px; }
+  .filter-field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); }
+  .filter-field select, .filter-field input { border: 1.5px solid var(--br); border-radius: 7px; padding: 6px 10px; font-size: 12px; outline: none; min-width: 130px; }
+  .filter-field select:focus, .filter-field input:focus { border-color: var(--dk); }
+  .filter-clear { background: transparent; border: 1.5px solid var(--br); color: var(--g); padding: 6px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; margin-top: 18px; }
+  .filter-clear:hover { border-color: var(--dk); color: var(--dk); }
+
+  /* Table */
+  .table-wrap { background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; }
+  .table-head { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--br); }
+  .table-head h3 { font-size: 13px; font-weight: 700; }
+  .table-count { font-size: 11px; color: var(--g); }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #f8f8f8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--br); }
+  td { padding: 11px 16px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .verdict-chip { padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: 700; display: inline-block; }
+  .v-rep { background: #fff0f1; color: var(--bad); }
+  .v-aj  { background: #fff5ee; color: var(--mid); }
+  .v-ap  { background: #edfff5; color: var(--ok); }
+
+  .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar { height: 6px; border-radius: 3px; min-width: 4px; }
+
+  .empty { text-align: center; padding: 40px; color: var(--g); font-size: 13px; }
+  .loading { text-align: center; padding: 40px; color: var(--g); font-size: 13px; }
+
+  .site-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .site-row:last-child { border-bottom: none; }
+  .site-name { font-size: 13px; font-weight: 600; }
+  .site-meta { font-size: 11px; color: var(--g); margin-top: 2px; }
+  .site-score { font-size: 18px; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">ML</div>
+    <div>
+      <div class="logo-text">Dashboard BK Estándar</div>
+      <div class="logo-sub">Resultados por Sitio</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+    <a class="hdr-btn" href="https://checklist-bk-estandar.vercel.app" target="_blank">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18 2l4 4-10 10H8v-4L18 2z"/></svg>
+      Ir al Checklist
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-lbl">Total Evaluaciones</div>
+      <div class="kpi-val" id="kpi-total">—</div>
+      <div class="kpi-sub">registros en la base</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Score Promedio</div>
+      <div class="kpi-val" id="kpi-avg">—</div>
+      <div class="kpi-sub">todas las evaluaciones</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Aprobados</div>
+      <div class="kpi-val" id="kpi-ok" style="color:var(--ok)">—</div>
+      <div class="kpi-sub">score &gt; 80%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Reprobados</div>
+      <div class="kpi-val" id="kpi-rep" style="color:var(--bad)">—</div>
+      <div class="kpi-sub">score ≤ 40%</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="card">
+      <h3>Score por Sitio</h3>
+      <canvas id="chartSite" height="220"></canvas>
+    </div>
+    <div class="card">
+      <h3>Distribución de Veredictos</h3>
+      <canvas id="chartVerdict" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-field">
+      <label>Sitio</label>
+      <select id="fSitio" onchange="applyFilters()"><option value="">Todos</option></select>
+    </div>
+    <div class="filter-field">
+      <label>Veredicto</label>
+      <select id="fVerdict" onchange="applyFilters()">
+        <option value="">Todos</option>
+        <option value="Aprobado">Aprobado</option>
+        <option value="Ajustes">Ajustes</option>
+        <option value="Reprobado">Reprobado</option>
+        <option value="Aprovado">Aprovado</option>
+        <option value="Reprovado">Reprovado</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label>Desde</label>
+      <input type="date" id="fDesde" onchange="applyFilters()">
+    </div>
+    <div class="filter-field">
+      <label>Hasta</label>
+      <input type="date" id="fHasta" onchange="applyFilters()">
+    </div>
+    <button class="filter-clear" onclick="clearFilters()">Limpiar</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-head">
+      <h3>Historial de Evaluaciones</h3>
+      <span class="table-count" id="tblCount"></span>
+    </div>
+    <div id="tblBody">
+      <div class="loading">Cargando datos...</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const _sb = supabase.createClient(
+  'https://amdaounmybtrcpkqfcgx.supabase.co',
+  'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C'
+);
+
+let ALL_DATA = [];
+let chartSite, chartVerdict;
+
+async function loadData() {
+  document.getElementById('tblBody').innerHTML = '<div class="loading">Cargando datos...</div>';
+  const { data, error } = await _sb.from('evaluaciones').select('*').order('created_at', { ascending: false });
+  if (error) { document.getElementById('tblBody').innerHTML = '<div class="empty">Error al cargar datos.</div>'; return; }
+  ALL_DATA = data || [];
+  populateSiteFilter();
+  applyFilters();
+}
+
+function populateSiteFilter() {
+  const sites = [...new Set(ALL_DATA.map(r => r.sitio).filter(Boolean))].sort();
+  const sel = document.getElementById('fSitio');
+  sel.innerHTML = '<option value="">Todos</option>' + sites.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+function applyFilters() {
+  let rows = [...ALL_DATA];
+  const sitio = document.getElementById('fSitio').value;
+  const verdict = document.getElementById('fVerdict').value;
+  const desde = document.getElementById('fDesde').value;
+  const hasta = document.getElementById('fHasta').value;
+  if (sitio)   rows = rows.filter(r => r.sitio === sitio);
+  if (verdict) rows = rows.filter(r => r.veredicto === verdict);
+  if (desde)   rows = rows.filter(r => r.fecha >= desde);
+  if (hasta)   rows = rows.filter(r => r.fecha <= hasta);
+  renderKPIs(rows);
+  renderCharts(rows);
+  renderTable(rows);
+}
+
+function clearFilters() {
+  document.getElementById('fSitio').value = '';
+  document.getElementById('fVerdict').value = '';
+  document.getElementById('fDesde').value = '';
+  document.getElementById('fHasta').value = '';
+  applyFilters();
+}
+
+function renderKPIs(rows) {
+  const total = rows.length;
+  const scores = rows.map(r => r.score_final).filter(v => v !== null);
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+  const ok  = rows.filter(r => r.score_final > 80).length;
+  const rep = rows.filter(r => r.score_final <= 40).length;
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-avg').textContent = avg !== null ? avg+'%' : '—';
+  document.getElementById('kpi-ok').textContent = ok;
+  document.getElementById('kpi-rep').textContent = rep;
+}
+
+function renderCharts(rows) {
+  // Score por sitio
+  const siteMap = {};
+  rows.forEach(r => {
+    if (!r.sitio || r.score_final === null) return;
+    if (!siteMap[r.sitio]) siteMap[r.sitio] = [];
+    siteMap[r.sitio].push(r.score_final);
+  });
+  const siteLabels = Object.keys(siteMap).sort();
+  const siteAvgs = siteLabels.map(s => Math.round(siteMap[s].reduce((a,b)=>a+b,0)/siteMap[s].length));
+  const siteColors = siteAvgs.map(v => v <= 40 ? '#E8303F' : v <= 80 ? '#FF7733' : '#00A650');
+
+  if (chartSite) chartSite.destroy();
+  chartSite = new Chart(document.getElementById('chartSite'), {
+    type: 'bar',
+    data: {
+      labels: siteLabels.length ? siteLabels : ['Sin datos'],
+      datasets: [{ data: siteLabels.length ? siteAvgs : [0], backgroundColor: siteColors, borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 100, ticks: { callback: v => v+'%', font: { size: 11 } }, grid: { color: '#f0f0f0' } },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Distribución veredictos
+  const vCounts = { Aprobado: 0, Aprovado: 0, Ajustes: 0, Reprobado: 0, Reprovado: 0 };
+  rows.forEach(r => { if (r.veredicto && vCounts[r.veredicto] !== undefined) vCounts[r.veredicto]++; });
+  const aprobado = (vCounts.Aprobado || 0) + (vCounts.Aprovado || 0);
+  const ajustes  = vCounts.Ajustes || 0;
+  const reprobado = (vCounts.Reprobado || 0) + (vCounts.Reprovado || 0);
+
+  if (chartVerdict) chartVerdict.destroy();
+  chartVerdict = new Chart(document.getElementById('chartVerdict'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Aprobado', 'Ajustes', 'Reprobado'],
+      datasets: [{ data: [aprobado, ajustes, reprobado], backgroundColor: ['#00A650','#FF7733','#E8303F'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 16 } }
+      }
+    }
+  });
+}
+
+function renderTable(rows) {
+  document.getElementById('tblCount').textContent = rows.length + ' registros';
+  if (!rows.length) {
+    document.getElementById('tblBody').innerHTML = '<div class="empty">No hay evaluaciones con estos filtros.</div>';
+    return;
+  }
+  const vClass = v => v==='Aprobado'||v==='Aprovado' ? 'v-ap' : v==='Reprobado'||v==='Reprovado' ? 'v-rep' : 'v-aj';
+  const scoreColor = p => p<=40 ? 'var(--bad)' : p<=80 ? 'var(--mid)' : 'var(--ok)';
+  const html = `
+    <table>
+      <thead><tr>
+        <th>Fecha</th><th>Evaluador</th><th>Sitio</th>
+        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${r.fecha || '—'}</td>
+            <td>${r.evaluador || '—'}</td>
+            <td><strong>${r.sitio || '—'}</strong></td>
+            <td>${r.score_eq !== null ? r.score_eq+'%' : '—'}</td>
+            <td>${r.score_es !== null ? r.score_es+'%' : '—'}</td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar" style="width:${r.score_final||0}px;max-width:60px;background:${scoreColor(r.score_final||0)}"></div>
+                <strong style="color:${scoreColor(r.score_final||0)}">${r.score_final !== null ? r.score_final+'%' : '—'}</strong>
+              </div>
+            </td>
+            <td><span class="verdict-chip ${vClass(r.veredicto)}">${r.veredicto || '—'}</span></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  document.getElementById('tblBody').innerHTML = html;
+}
+
+loadData();
+</script>
+</body>
+</html>
