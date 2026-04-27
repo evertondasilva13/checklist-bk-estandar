@@ -704,6 +704,22 @@ async function finalize() {
     return;
   }
 
+  // ── Validate required header fields ──
+  const evaluadorVal = document.getElementById('evaluador').value.trim();
+  const sitioVal = document.getElementById('sitio').value.trim();
+  if (!evaluadorVal || !sitioVal) {
+    const missing = [];
+    if (!evaluadorVal) missing.push(LANG==='pt' ? 'Nome do avaliador é obrigatório.' : 'El nombre del evaluador es obligatorio.');
+    if (!sitioVal) missing.push(LANG==='pt' ? 'Site / Operação é obrigatório.' : 'El sitio / operación es obligatorio.');
+    document.getElementById('evaluador').style.borderColor = evaluadorVal ? '' : 'var(--bad)';
+    document.getElementById('sitio').style.borderColor = sitioVal ? '' : 'var(--bad)';
+    showValidationToast(LANG==='pt' ? 'Campos obrigatórios' : 'Campos obligatorios', missing);
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+  document.getElementById('evaluador').style.borderColor = '';
+  document.getElementById('sitio').style.borderColor = '';
+
   // Collect comments
   const comentarios = {};
   document.querySelectorAll('.item').forEach((el, i) => {
