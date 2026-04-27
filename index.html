@@ -33,8 +33,8 @@
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media(max-width:540px){.form-grid{grid-template-columns:1fr}}
   .field label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 4px; }
-  .field input { width: 100%; border: 1.5px solid var(--br); border-radius: 7px; padding: 8px 11px; font-size: 13px; outline: none; transition: border-color .2s; }
-  .field input:focus { border-color: var(--dk); }
+  .field input, .field select { width: 100%; border: 1.5px solid var(--br); border-radius: 7px; padding: 8px 11px; font-size: 13px; outline: none; transition: border-color .2s; background: white; }
+  .field input:focus, .field select:focus { border-color: var(--dk); }
 
   .prog-wrap { display: flex; align-items: center; gap: 12px; }
   .prog-wrap span { font-size: 12px; font-weight: 600; min-width: 120px; }
@@ -191,6 +191,17 @@
     <div class="field"><label data-i18n="evaluador">Evaluador</label><input type="text" id="evaluador" data-i18n-ph="evaluadorPh" placeholder="Tu nombre completo"></div>
     <div class="field"><label data-i18n="fecha">Fecha</label><input type="date" id="fecha"></div>
     <div class="field"><label data-i18n="sitio">Sitio / Almacén</label><input type="text" id="sitio" data-i18n-ph="sitioPh" placeholder="Ej: CD São Paulo"></div>
+    <div class="field"><label data-i18n="pais">País</label>
+      <select id="pais">
+        <option value="">— Seleccionar —</option>
+        <option value="MLB">MLB — Brasil</option>
+        <option value="MLA">MLA — Argentina</option>
+        <option value="MLM">MLM — México</option>
+        <option value="MLC">MLC — Chile</option>
+        <option value="MCO">MCO — Colombia</option>
+        <option value="MLU">MLU — Uruguay</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -282,7 +293,7 @@ const T = {
     title:'Checklist BK Estándar', subtitle:'Evaluación de Equipamiento',
     infoTitle:'Información de la Evaluación',
     evaluador:'Evaluador', evaluadorPh:'Tu nombre completo',
-    fecha:'Fecha', sitio:'Sitio / Almacén', sitioPh:'Ej: CD São Paulo',
+    fecha:'Fecha', sitio:'Sitio / Almacén', sitioPh:'Ej: CD São Paulo', pais:'País',
     itensEval:'Ítems evaluados', items:'ítems', items2:'ítems', item1:'ítem',
     secEq:'Equipo Estándar', secEs:'Estructura', secPi:'Pintura',
     referencia:'Referencia',
@@ -301,7 +312,7 @@ const T = {
     title:'Checklist BK Padrão', subtitle:'Avaliação de Equipamentos',
     infoTitle:'Informações da Avaliação',
     evaluador:'Avaliador', evaluadorPh:'Seu nome completo',
-    fecha:'Data', sitio:'Site / Armazém', sitioPh:'Ex: CD São Paulo',
+    fecha:'Data', sitio:'Site / Armazém', sitioPh:'Ex: CD São Paulo', pais:'País',
     itensEval:'Itens avaliados', items:'itens', items2:'itens', item1:'item',
     secEq:'Equipamento Padrão', secEs:'Estrutura', secPi:'Pintura',
     referencia:'Referência',
@@ -730,18 +741,22 @@ async function finalize() {
   // ── Validate required header fields ──
   const evaluadorVal = document.getElementById('evaluador').value.trim();
   const sitioVal = document.getElementById('sitio').value.trim();
-  if (!evaluadorVal || !sitioVal) {
+  const paisVal = document.getElementById('pais').value.trim();
+  if (!evaluadorVal || !sitioVal || !paisVal) {
     const missing = [];
     if (!evaluadorVal) missing.push(LANG==='pt' ? 'Nome do avaliador é obrigatório.' : 'El nombre del evaluador es obligatorio.');
     if (!sitioVal) missing.push(LANG==='pt' ? 'Site / Operação é obrigatório.' : 'El sitio / operación es obligatorio.');
+    if (!paisVal) missing.push(LANG==='pt' ? 'País é obrigatório.' : 'El país es obligatorio.');
     document.getElementById('evaluador').style.borderColor = evaluadorVal ? '' : 'var(--bad)';
     document.getElementById('sitio').style.borderColor = sitioVal ? '' : 'var(--bad)';
+    document.getElementById('pais').style.borderColor = paisVal ? '' : 'var(--bad)';
     showValidationToast(LANG==='pt' ? 'Campos obrigatórios' : 'Campos obligatorios', missing);
     window.scrollTo({top:0, behavior:'smooth'});
     return;
   }
   document.getElementById('evaluador').style.borderColor = '';
   document.getElementById('sitio').style.borderColor = '';
+  document.getElementById('pais').style.borderColor = '';
 
   // Collect comments
   const comentarios = {};
@@ -794,6 +809,7 @@ async function finalize() {
     evaluador: evaluador,
     fecha: document.getElementById('fecha').value || null,
     sitio: sitio,
+    pais: document.getElementById('pais').value || null,
     idioma: LANG,
     score_eq: eq !== null ? Math.round(eq*100) : null,
     score_es: es !== null ? Math.round(es*100) : null,
