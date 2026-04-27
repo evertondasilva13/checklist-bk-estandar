@@ -331,10 +331,12 @@ function renderTable(rows) {
     <table>
       <thead><tr>
         <th>Fecha</th><th>Evaluador</th><th>Sitio</th>
-        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th></th>
+        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th>Fotos</th><th></th>
       </tr></thead>
       <tbody>
-        ${rows.map(r => `
+        ${rows.map(r => {
+          const nFotos = (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0;
+          return `
           <tr>
             <td>${r.fecha || '—'}</td>
             <td>${r.evaluador || '—'}</td>
@@ -348,8 +350,13 @@ function renderTable(rows) {
               </div>
             </td>
             <td><span class="verdict-chip ${vClass(r.veredicto)}">${r.veredicto || '—'}</span></td>
+            <td>${nFotos > 0
+              ? `<button class="foto-btn" onclick='openFotoModal(${JSON.stringify(r.fotos)}, "${r.sitio||''}", "${r.fecha||''}")'>📷 ${nFotos}</button>`
+              : '<span style="color:#ccc;font-size:12px">—</span>'
+            }</td>
             <td><button class="del-btn" onclick="openDeleteModal('${r.id}')">🗑</button></td>
-          </tr>`).join('')}
+          </tr>`;
+        }).join('')}
       </tbody>
     </table>`;
   document.getElementById('tblBody').innerHTML = html;
