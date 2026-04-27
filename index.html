@@ -748,7 +748,7 @@ async function finalize() {
       const el = allItems[offset + i];
       if (!el) return;
       const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
-      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0;
+      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0 || el.querySelectorAll('.ppreview .video-thumb').length > 0;
       if (!hasComment && !hasPhoto) {
         const title = el.querySelector('.item-title')?.textContent || ('Item ' + (offset+i+1));
         missing.push((offset+i+1) + '. ' + title);
@@ -795,62 +795,68 @@ async function finalize() {
   btn.disabled = true;
 
   try {
-    // ── Upload photos & videos to Supabase Storage ──
-    const photoImgs   = Array.from(document.querySelectorAll('.ppreview img'));
-    const videoThumbs = Array.from(document.querySelectorAll('.ppreview .video-thumb'));
-    const totalMedia  = photoImgs.length + videoThumbs.length;
+    // ── Upload photos & videos per item (with label context) ──
+    // Build upload queue per item so we can tag each file with its item name
+    const uploadQueue = [];
+    const allItemEls  = document.querySelectorAll('.item');
+    const secDefs = [{ key:'eq', offset:0 }, { key:'es', offset:13 }, { key:'pi', offset:17 }];
+    secDefs.forEach(({ key, offset }) => {
+      R[key].forEach((val, idx) => {
+        if (val === null) return;
+        const el = allItemEls[offset + idx];
+        if (!el) return;
+        const itemTitle  = el.querySelector('.item-title')?.textContent?.trim() || ('Item ' + (offset+idx+1));
+        const itemNum    = offset + idx + 1;
+        const itemRating = val;
+        el.querySelectorAll('.ppreview img').forEach(img => {
+          uploadQueue.push({ type:'image', src:img.src, itemTitle, itemNum, itemRating });
+        });
+        el.querySelectorAll('.ppreview .video-thumb').forEach(thumb => {
+          if (thumb._videoFile) uploadQueue.push({ type:'video', file:thumb._videoFile, itemTitle, itemNum, itemRating });
+        });
+      });
+    });
 
+    const totalMedia = uploadQueue.length;
     if (totalMedia > 0) {
-      btn.textContent = LANG==='pt' ? 'Enviando mídia (0/'+totalMedia+')...' : 'Subiendo archivos (0/'+totalMedia+')...';
+      btn.textContent = (LANG==='pt' ? 'Enviando mídia (0/' : 'Subiendo archivos (0/') + totalMedia + ')...';
       let uploaded = 0;
       const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
 
-      // Photos (base64 → Blob)
-      const photoPromises = photoImgs.map(async (img, i) => {
+      const uploadPromises = uploadQueue.map(async (item, i) => {
         try {
-          const src = img.src;
-          if (!src.startsWith('data:')) return;
-          const arr = src.split(',');
-          const mime = arr[0].match(/:(.*?);/)[1];
-          const ext = mime.split('/')[1] || 'jpg';
-          const bstr = atob(arr[1]);
-          const u8arr = new Uint8Array(bstr.length);
-          for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
-          const blob = new Blob([u8arr], { type: mime });
-          const path = `${safeSitio}/${Date.now()}_img${i}.${ext}`;
-          const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
-          if (!upErr) {
-            const { data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path);
-            payload.fotos.push(publicUrl);
+          let publicUrl = null;
+          if (item.type === 'image') {
+            const src = item.src;
+            if (!src.startsWith('data:')) return;
+            const arr = src.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const ext  = mime.split('/')[1] || 'jpg';
+            const bstr = atob(arr[1]);
+            const u8arr = new Uint8Array(bstr.length);
+            for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
+            const blob = new Blob([u8arr], { type: mime });
+            const path = safeSitio + '/' + Date.now() + '_img' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          } else {
+            const f = item.file;
+            const MAX_MB = 50;
+            if (f.size > MAX_MB * 1024 * 1024) { console.warn('Video >50MB, skipped:', f.name); return; }
+            const ext  = f.name.split('.').pop() || 'mp4';
+            const path = safeSitio + '/' + Date.now() + '_vid' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, f, { contentType: f.type, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          }
+          if (publicUrl) {
+            payload.fotos.push({ url: publicUrl, item: item.itemTitle, num: item.itemNum, rating: item.itemRating, type: item.type });
           }
           uploaded++;
           btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + totalMedia + ')...';
-        } catch(e) { console.warn('Photo upload failed:', e); }
+        } catch(e) { console.warn('Upload failed:', e); }
       });
 
-      // Videos (direct File upload — no base64 conversion)
-      const videoPromises = videoThumbs.map(async (thumb, i) => {
-        try {
-          const f = thumb._videoFile;
-          if (!f) return;
-          const MAX_MB = 50;
-          if (f.size > MAX_MB * 1024 * 1024) {
-            console.warn('Video too large (>' + MAX_MB + 'MB), skipped:', f.name);
-            return;
-          }
-          const ext = f.name.split('.').pop() || 'mp4';
-          const path = `${safeSitio}/${Date.now()}_vid${i}.${ext}`;
-          const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, f, { contentType: f.type, upsert: false });
-          if (!upErr) {
-            const { data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path);
-            payload.fotos.push(publicUrl);
-          }
-          uploaded++;
-          btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + totalMedia + ')...';
-        } catch(e) { console.warn('Video upload failed:', e); }
-      });
-
-      await Promise.all([...photoPromises, ...videoPromises]);
+      await Promise.all(uploadPromises);
     }
 
     btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
