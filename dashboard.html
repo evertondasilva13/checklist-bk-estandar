@@ -51,6 +51,16 @@
   .filter-clear { background: transparent; border: 1.5px solid var(--br); color: var(--g); padding: 6px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; margin-top: 18px; }
   .filter-clear:hover { border-color: var(--dk); color: var(--dk); }
 
+  /* Equipment Tabs */
+  .equipo-tabs { display: flex; gap: 0; margin-bottom: 16px; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; }
+  .etab { flex: 1; padding: 14px 20px; border: none; cursor: pointer; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s; background: white; color: var(--g); border-bottom: 3px solid transparent; }
+  .etab:hover { background: #f9f9f9; color: var(--dk); }
+  .etab.act-std { background: #FFFCE0; color: var(--dk); border-bottom-color: var(--yd); }
+  .etab.act-frag { background: #e8f4fd; color: #1565c0; border-bottom-color: #1976d2; }
+  .etab-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(0,0,0,.08); }
+  .etab.act-std .etab-count { background: var(--yd); color: var(--dk); }
+  .etab.act-frag .etab-count { background: #1976d2; color: white; }
+
   /* Table */
   .table-wrap { background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; }
   .table-head { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--br); }
@@ -168,6 +178,16 @@
     </div>
   </div>
 
+  <!-- Equipment Tabs -->
+  <div class="equipo-tabs">
+    <button class="etab act-std" id="tabStd" onclick="setTab('BK Estándar')">
+      🟡 BK Estándar <span class="etab-count" id="cntStd">0</span>
+    </button>
+    <button class="etab" id="tabFrag" onclick="setTab('BK Fragiles')">
+      🔵 BK Fragiles <span class="etab-count" id="cntFrag">0</span>
+    </button>
+  </div>
+
   <!-- Filters -->
   <div class="filters">
     <div class="filter-field">
@@ -224,6 +244,7 @@ async function loadData() {
   if (error) { document.getElementById('tblBody').innerHTML = '<div class="empty">Error al cargar datos.</div>'; return; }
   ALL_DATA = data || [];
   populateSiteFilter();
+  updateTabCounts();
   applyFilters();
 }
 
@@ -233,12 +254,28 @@ function populateSiteFilter() {
   sel.innerHTML = '<option value="">Todos</option>' + sites.map(s => `<option value="${s}">${s}</option>`).join('');
 }
 
+let ACTIVE_TAB = 'BK Estándar';
+
+function setTab(tipo) {
+  ACTIVE_TAB = tipo;
+  document.getElementById('tabStd').className  = 'etab' + (tipo==='BK Estándar' ? ' act-std' : '');
+  document.getElementById('tabFrag').className = 'etab' + (tipo==='BK Fragiles' ? ' act-frag' : '');
+  applyFilters();
+}
+
+function updateTabCounts() {
+  const std  = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'BK Estándar').length;
+  const frag = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'BK Fragiles').length;
+  document.getElementById('cntStd').textContent  = std;
+  document.getElementById('cntFrag').textContent = frag;
+}
+
 function applyFilters() {
-  let rows = [...ALL_DATA];
-  const sitio = document.getElementById('fSitio').value;
+  let rows = ALL_DATA.filter(r => (r.equipo_tipo || 'BK Estándar') === ACTIVE_TAB);
+  const sitio   = document.getElementById('fSitio').value;
   const verdict = document.getElementById('fVerdict').value;
-  const desde = document.getElementById('fDesde').value;
-  const hasta = document.getElementById('fHasta').value;
+  const desde   = document.getElementById('fDesde').value;
+  const hasta   = document.getElementById('fHasta').value;
   if (sitio)   rows = rows.filter(r => r.sitio === sitio);
   if (verdict) rows = rows.filter(r => r.veredicto === verdict);
   if (desde)   rows = rows.filter(r => r.fecha >= desde);
