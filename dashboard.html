@@ -195,6 +195,18 @@
       <select id="fSitio" onchange="applyFilters()"><option value="">Todos</option></select>
     </div>
     <div class="filter-field">
+      <label>País</label>
+      <select id="fPais" onchange="applyFilters()">
+        <option value="">Todos</option>
+        <option value="MLB">MLB — Brasil</option>
+        <option value="MLA">MLA — Argentina</option>
+        <option value="MLM">MLM — México</option>
+        <option value="MLC">MLC — Chile</option>
+        <option value="MCO">MCO — Colombia</option>
+        <option value="MLU">MLU — Uruguay</option>
+      </select>
+    </div>
+    <div class="filter-field">
       <label>Veredicto</label>
       <select id="fVerdict" onchange="applyFilters()">
         <option value="">Todos</option>
@@ -273,10 +285,12 @@ function updateTabCounts() {
 function applyFilters() {
   let rows = ALL_DATA.filter(r => (r.equipo_tipo || 'BK Estándar') === ACTIVE_TAB);
   const sitio   = document.getElementById('fSitio').value;
+  const pais    = document.getElementById('fPais').value;
   const verdict = document.getElementById('fVerdict').value;
   const desde   = document.getElementById('fDesde').value;
   const hasta   = document.getElementById('fHasta').value;
   if (sitio)   rows = rows.filter(r => r.sitio === sitio);
+  if (pais)    rows = rows.filter(r => r.pais === pais);
   if (verdict) rows = rows.filter(r => r.veredicto === verdict);
   if (desde)   rows = rows.filter(r => r.fecha >= desde);
   if (hasta)   rows = rows.filter(r => r.fecha <= hasta);
@@ -287,6 +301,7 @@ function applyFilters() {
 
 function clearFilters() {
   document.getElementById('fSitio').value = '';
+  document.getElementById('fPais').value = '';
   document.getElementById('fVerdict').value = '';
   document.getElementById('fDesde').value = '';
   document.getElementById('fHasta').value = '';
@@ -367,7 +382,7 @@ function renderTable(rows) {
   const html = `
     <table>
       <thead><tr>
-        <th>Fecha</th><th>Evaluador</th><th>Sitio</th>
+        <th>Fecha</th><th>Evaluador</th><th>Sitio</th><th>País</th>
         <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th>Fotos</th><th></th>
       </tr></thead>
       <tbody>
@@ -378,6 +393,7 @@ function renderTable(rows) {
             <td>${r.fecha || '—'}</td>
             <td>${r.evaluador || '—'}</td>
             <td><strong>${r.sitio || '—'}</strong></td>
+            <td>${r.pais ? `<span style="font-size:10px;font-weight:700;background:#f0f4ff;color:#1a3a8f;padding:2px 8px;border-radius:8px;">${r.pais}</span>` : '—'}</td>
             <td>${r.score_eq !== null ? r.score_eq+'%' : '—'}</td>
             <td>${r.score_es !== null ? r.score_es+'%' : '—'}</td>
             <td>
