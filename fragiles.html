@@ -477,6 +477,7 @@ const REF_IMGS = {
   ],
 };
 const R = { eq: new Array(9).fill(null), es: new Array(2).fill(null), pi: new Array(1).fill(null) };
+const SM = { malo:.25, intermedio:.65, excelente:1 };
 function buildItem(item, sec, idx) {
   const key = sec+'_'+idx;
   const refImgs = REF_IMGS[key] || [];
