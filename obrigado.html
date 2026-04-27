@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación Enviada — Mercado Libre</title>
+<style>
+  :root {
+    --y: #FFE600; --yd: #E6CF00;
+    --dk: #1A1A1A; --g: #666; --lt: #F5F5F5; --br: #E0E0E0;
+    --bad: #E8303F; --mid: #FF7733; --ok: #00A650;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lt); color: var(--dk); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { background: var(--y); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 58px; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--dk); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--y); font-weight: 900; font-size: 13px; }
+  .logo-text { font-size: 16px; font-weight: 800; color: var(--dk); }
+  .logo-sub { font-size: 11px; color: #555; }
+
+  main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+
+  .card {
+    background: white; border-radius: 16px; padding: 40px 36px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.10); max-width: 480px; width: 100%;
+    text-align: center;
+  }
+
+  .check-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--ok); display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 38px;
+  }
+
+  .card h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+  .card .sub { font-size: 14px; color: var(--g); margin-bottom: 28px; line-height: 1.5; }
+
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--lt); border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+  .info-row .lbl { color: var(--g); font-weight: 600; }
+  .info-row .val { font-weight: 700; }
+
+  .score-big {
+    background: var(--dk); color: var(--y); border-radius: 12px;
+    padding: 16px 20px; margin: 18px 0; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .score-big .num { font-size: 36px; font-weight: 900; }
+  .score-big .lbl { font-size: 13px; font-weight: 600; opacity: .8; text-align: left; line-height: 1.3; }
+
+  .verdict-badge {
+    display: inline-block; padding: 5px 18px; border-radius: 20px;
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 24px;
+  }
+  .v-ap { background: #edfff5; color: var(--ok); border: 1.5px solid var(--ok); }
+  .v-aj { background: #fff5ee; color: var(--mid); border: 1.5px solid var(--mid); }
+  .v-rep { background: #fff0f1; color: var(--bad); border: 1.5px solid var(--bad); }
+
+  .divider { border: none; border-top: 1px solid var(--br); margin: 20px 0; }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    flex: 1; min-width: 130px; padding: 12px 16px; border-radius: 10px;
+    font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border: 2px solid transparent; transition: all .15s;
+  }
+  .btn-primary { background: var(--y); color: var(--dk); border-color: var(--yd); }
+  .btn-primary:hover { background: var(--yd); }
+  .btn-secondary { background: var(--dk); color: var(--y); }
+  .btn-secondary:hover { background: #333; }
+
+  footer { text-align: center; padding: 16px; font-size: 11px; color: #aaa; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">ML</div>
+    <div>
+      <div class="logo-text">Mercado Libre</div>
+      <div class="logo-sub" id="logoSub">BK Estándar — Evaluación</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="check-circle">✓</div>
+    <h1 id="title">¡Evaluación Enviada!</h1>
+    <p class="sub" id="sub">La evaluación fue registrada correctamente en el sistema.</p>
+
+    <div id="infoEvaluador" class="info-row" style="display:none">
+      <span class="lbl" id="lblEvaluador">Evaluador</span>
+      <span class="val" id="valEvaluador">—</span>
+    </div>
+    <div id="infoSitio" class="info-row" style="display:none">
+      <span class="lbl" id="lblSitio">Sitio</span>
+      <span class="val" id="valSitio">—</span>
+    </div>
+
+    <div class="score-big">
+      <div class="num" id="scoreNum">—</div>
+      <div class="lbl" id="scoreLabel">Score<br>Final</div>
+    </div>
+
+    <div>
+      <span class="verdict-badge" id="verdictBadge">—</span>
+    </div>
+
+    <hr class="divider">
+
+    <div class="btn-row">
+      <a class="btn btn-primary" href="index.html" id="btnNew">
+        ＋ <span id="btnNewTxt">Nueva evaluación</span>
+      </a>
+      <a class="btn btn-secondary" href="dashboard.html" id="btnDash">
+        📊 <span id="btnDashTxt">Ver dashboard</span>
+      </a>
+    </div>
+  </div>
+</main>
+
+<footer id="footerTxt">© Mercado Libre — BK Estándar</footer>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const lang = params.get('lang') || 'es';
+const score = parseInt(params.get('score') || '0');
+const veredicto = params.get('veredicto') || '';
+const evaluador = params.get('evaluador') || '';
+const sitio = params.get('sitio') || '';
+
+const T = {
+  es: {
+    title: '¡Evaluación Enviada!',
+    sub: 'La evaluación fue registrada correctamente en el sistema.',
+    lblEvaluador: 'Evaluador',
+    lblSitio: 'Sitio',
+    scoreLabel: 'Score\nFinal',
+    btnNew: 'Nueva evaluación',
+    btnDash: 'Ver dashboard',
+    footer: '© Mercado Libre — BK Estándar',
+    logoSub: 'BK Estándar — Evaluación'
+  },
+  pt: {
+    title: 'Avaliação Enviada!',
+    sub: 'A avaliação foi registrada corretamente no sistema.',
+    lblEvaluador: 'Avaliador',
+    lblSitio: 'Site',
+    scoreLabel: 'Score\nFinal',
+    btnNew: 'Nova avaliação',
+    btnDash: 'Ver dashboard',
+    footer: '© Mercado Livre — BK Padrão',
+    logoSub: 'BK Padrão — Avaliação'
+  }
+};
+
+const t = T[lang] || T.es;
+
+document.getElementById('title').textContent = t.title;
+document.getElementById('sub').textContent = t.sub;
+document.getElementById('lblEvaluador').textContent = t.lblEvaluador;
+document.getElementById('lblSitio').textContent = t.lblSitio;
+document.getElementById('btnNewTxt').textContent = t.btnNew;
+document.getElementById('btnDashTxt').textContent = t.btnDash;
+document.getElementById('footerTxt').textContent = t.footer;
+document.getElementById('logoSub').textContent = t.logoSub;
+document.querySelector('html').lang = lang;
+document.title = (lang==='pt' ? 'Avaliação Enviada' : 'Evaluación Enviada') + ' — Mercado Libre';
+
+if (evaluador) {
+  document.getElementById('infoEvaluador').style.display = 'flex';
+  document.getElementById('valEvaluador').textContent = evaluador;
+}
+if (sitio) {
+  document.getElementById('infoSitio').style.display = 'flex';
+  document.getElementById('valSitio').textContent = sitio;
+}
+
+document.getElementById('scoreNum').textContent = score + '%';
+
+const scoreColor = score <= 40 ? '#E8303F' : score <= 80 ? '#FF7733' : '#00A650';
+document.getElementById('scoreNum').style.color = scoreColor;
+
+const vClass = veredicto==='Aprobado'||veredicto==='Aprovado' ? 'v-ap' :
+               veredicto==='Reprobado'||veredicto==='Reprovado' ? 'v-rep' : 'v-aj';
+const badge = document.getElementById('verdictBadge');
+badge.textContent = veredicto || '—';
+badge.className = 'verdict-badge ' + vClass;
+</script>
+</body>
+</html>
