@@ -367,24 +367,46 @@ loadData();
 // ── Delete ──
 // ── Foto Modal ──
 function openFotoModal(fotosJson, sitio, fecha) {
-  const fotos = typeof fotosJson === 'string' ? JSON.parse(fotosJson) : fotosJson;
+  const raw = typeof fotosJson === 'string' ? JSON.parse(fotosJson) : fotosJson;
+  // Normalize: old format = string URL, new format = {url, item, num, rating, type}
+  const fotos = raw.map(f => typeof f === 'string'
+    ? { url: f, item: null, num: null, rating: null, type: 'image' } : f);
+
   document.getElementById('fotoModalSub').textContent = [sitio, fecha].filter(Boolean).join(' · ');
+
+  const ratingColor = { malo:'#E8303F', intermedio:'#FF7733', excelente:'#00A650' };
+  const ratingLbl   = { malo:'Malo', intermedio:'Intermedio', excelente:'Excelente' };
+
   const grid = document.getElementById('fotoGrid');
   if (!fotos || !fotos.length) {
     grid.innerHTML = '<div class="foto-empty">Nenhuma foto registrada / No hay fotos registradas.</div>';
   } else {
-    grid.innerHTML = fotos.map((url, i) => {
-      const isVideo = /\.(mp4|mov|avi|webm|mkv|m4v|3gp)(\?|$)/i.test(url);
+    grid.innerHTML = fotos.map((f, i) => {
+      const url     = f.url || f;
+      const label   = f.item ? ((f.num ? f.num + '. ' : '') + f.item) : null;
+      const rating  = f.rating || null;
+      const rColor  = ratingColor[rating] || '#999';
+      const isVideo = f.type === 'video' || /\.(mp4|mov|avi|webm|mkv|m4v|3gp)(\?|$)/i.test(url);
+
+      const overlay = label
+        ? `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.78);padding:5px 7px;">
+             <div style="color:#fff;font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</div>
+             ${rating ? `<div style="color:${rColor};font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;">${ratingLbl[rating]||rating}</div>` : ''}
+           </div>` : '';
+
       if (isVideo) {
-        return `<a href="${url}" target="_blank" title="Abrir vídeo ${i+1}" style="background:#1A1A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;border-radius:8px;aspect-ratio:1;border:2px solid #333;">
-          <span style="font-size:28px">▶</span>
-          <span style="color:#FFE600;font-size:10px;font-weight:700;">Vídeo ${i+1}</span>
-          <span style="color:#aaa;font-size:9px;">clique para abrir</span>
+        return `<a href="${url}" target="_blank" style="background:#1A1A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;border-radius:8px;aspect-ratio:1;border:2px solid #333;position:relative;overflow:hidden;">
+          <span style="font-size:26px">▶</span>
+          <span style="color:#FFE600;font-size:9px;font-weight:700;">Vídeo</span>
+          ${overlay}
         </a>`;
       }
-      return `<a href="${url}" target="_blank" title="Abrir foto ${i+1}">
-        <img src="${url}" alt="Foto ${i+1}" loading="lazy" onerror="this.outerHTML='<div style=\\'background:#f0f0f0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#aaa;\\'>Erro</div>'">
-      </a>`;
+      return `<div style="position:relative;border-radius:8px;overflow:hidden;border:2px solid var(--br);aspect-ratio:1;">
+        <a href="${url}" target="_blank" style="display:block;width:100%;height:100%;">
+          <img src="${url}" alt="${label||'Foto '+(i+1)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+        </a>
+        ${overlay}
+      </div>`;
     }).join('');
   }
   document.getElementById('fotoModal').classList.add('open');
