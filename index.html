@@ -668,9 +668,12 @@ function previewF(input) {
       };
       r.readAsDataURL(f);
     } else {
-      const t = document.createElement('div'); t.className = 'pthumb';
-      t.style.cssText = 'background:#1A1A1A;display:flex;align-items:center;justify-content:center';
-      t.innerHTML = '<span style="color:#FFE600;font-size:8px;text-align:center;padding:3px">▶ '+f.name.slice(0,8)+'</span><button class="prm" onclick="this.parentElement.remove()">×</button>';
+      // Video — store File reference directly on the element for upload
+      const sizeMB = (f.size / 1024 / 1024).toFixed(0);
+      const t = document.createElement('div'); t.className = 'pthumb video-thumb';
+      t.style.cssText = 'background:#1A1A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px';
+      t.innerHTML = '<span style="color:#FFE600;font-size:18px">▶</span><span style="color:#FFE600;font-size:7px;text-align:center;padding:0 3px;word-break:break-all">'+f.name.slice(0,12)+'</span><span style="color:#aaa;font-size:7px">'+sizeMB+'MB</span><button class="prm" onclick="this.parentElement.remove()">×</button>';
+      t._videoFile = f; // keep File reference for upload
       prev.appendChild(t);
     }
   });
@@ -792,11 +795,18 @@ async function finalize() {
   btn.disabled = true;
 
   try {
-    // ── Upload photos to Supabase Storage ──
-    const photoPreviews = document.querySelectorAll('.ppreview img');
-    if (photoPreviews.length > 0) {
-      btn.textContent = LANG==='pt' ? 'Enviando fotos...' : 'Subiendo fotos...';
-      const uploadPromises = Array.from(photoPreviews).map(async (img, i) => {
+    // ── Upload photos & videos to Supabase Storage ──
+    const photoImgs   = Array.from(document.querySelectorAll('.ppreview img'));
+    const videoThumbs = Array.from(document.querySelectorAll('.ppreview .video-thumb'));
+    const totalMedia  = photoImgs.length + videoThumbs.length;
+
+    if (totalMedia > 0) {
+      btn.textContent = LANG==='pt' ? 'Enviando mídia (0/'+totalMedia+')...' : 'Subiendo archivos (0/'+totalMedia+')...';
+      let uploaded = 0;
+      const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+      // Photos (base64 → Blob)
+      const photoPromises = photoImgs.map(async (img, i) => {
         try {
           const src = img.src;
           if (!src.startsWith('data:')) return;
@@ -807,16 +817,40 @@ async function finalize() {
           const u8arr = new Uint8Array(bstr.length);
           for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
           const blob = new Blob([u8arr], { type: mime });
-          const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
-          const path = `${safeSitio}/${Date.now()}_${i}.${ext}`;
+          const path = `${safeSitio}/${Date.now()}_img${i}.${ext}`;
           const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
           if (!upErr) {
             const { data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path);
             payload.fotos.push(publicUrl);
           }
+          uploaded++;
+          btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + totalMedia + ')...';
         } catch(e) { console.warn('Photo upload failed:', e); }
       });
-      await Promise.all(uploadPromises);
+
+      // Videos (direct File upload — no base64 conversion)
+      const videoPromises = videoThumbs.map(async (thumb, i) => {
+        try {
+          const f = thumb._videoFile;
+          if (!f) return;
+          const MAX_MB = 50;
+          if (f.size > MAX_MB * 1024 * 1024) {
+            console.warn('Video too large (>' + MAX_MB + 'MB), skipped:', f.name);
+            return;
+          }
+          const ext = f.name.split('.').pop() || 'mp4';
+          const path = `${safeSitio}/${Date.now()}_vid${i}.${ext}`;
+          const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, f, { contentType: f.type, upsert: false });
+          if (!upErr) {
+            const { data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path);
+            payload.fotos.push(publicUrl);
+          }
+          uploaded++;
+          btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + totalMedia + ')...';
+        } catch(e) { console.warn('Video upload failed:', e); }
+      });
+
+      await Promise.all([...photoPromises, ...videoPromises]);
     }
 
     btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
