@@ -69,6 +69,38 @@
   .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
   .score-bar { height: 6px; border-radius: 3px; min-width: 4px; }
 
+
+  /* Delete modal */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:999; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:white; border-radius:12px; padding:28px 28px 24px; width:340px; box-shadow:0 8px 32px rgba(0,0,0,.2); }
+  .modal h4 { font-size:15px; font-weight:800; margin-bottom:6px; }
+  .modal p { font-size:12px; color:var(--g); margin-bottom:16px; line-height:1.5; }
+  .modal input { width:100%; border:1.5px solid var(--br); border-radius:7px; padding:9px 12px; font-size:13px; outline:none; margin-bottom:6px; }
+  .modal input:focus { border-color:var(--dk); }
+  .modal-err { font-size:11px; color:var(--bad); height:16px; margin-bottom:10px; }
+  .modal-btns { display:flex; gap:8px; justify-content:flex-end; }
+  .modal-cancel { background:transparent; border:1.5px solid var(--br); color:var(--g); padding:8px 18px; border-radius:7px; font-size:12px; cursor:pointer; }
+  .modal-cancel:hover { border-color:var(--dk); color:var(--dk); }
+  .modal-confirm { background:var(--bad); color:white; border:none; padding:8px 18px; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; }
+  .modal-confirm:hover { background:#c0222f; }
+  /* Delete btn */
+  .del-btn { background:transparent; border:1.5px solid #fcc; color:var(--bad); padding:4px 9px; border-radius:6px; font-size:11px; cursor:pointer; transition:all .15s; }
+  .del-btn:hover { background:var(--bad); color:white; border-color:var(--bad); }
+  .foto-btn { background: var(--dk); color: var(--y); border: none; cursor: pointer; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 10px; transition: background .12s; white-space: nowrap; }
+  .foto-btn:hover { background: #333; }
+  .foto-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:1000; align-items:flex-start; justify-content:center; overflow-y:auto; padding:24px 16px; }
+  .foto-modal-overlay.open { display:flex; }
+  .foto-modal { background:white; border-radius:14px; max-width:700px; width:100%; padding:24px; margin:auto; }
+  .foto-modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .foto-modal-title { font-size:15px; font-weight:800; }
+  .foto-modal-close { background:none; border:none; font-size:26px; cursor:pointer; color:#999; line-height:1; }
+  .foto-modal-close:hover { color:var(--dk); }
+  .foto-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .foto-grid a { display:block; border-radius:8px; overflow:hidden; border:2px solid var(--br); aspect-ratio:1; }
+  .foto-grid a:hover { border-color:var(--dk); }
+  .foto-grid img { width:100%; height:100%; object-fit:cover; }
+  .foto-empty { text-align:center; padding:24px; color:var(--g); font-size:13px; }
   .empty { text-align: center; padding: 40px; color: var(--g); font-size: 13px; }
   .loading { text-align: center; padding: 40px; color: var(--g); font-size: 13px; }
 
@@ -299,7 +331,7 @@ function renderTable(rows) {
     <table>
       <thead><tr>
         <th>Fecha</th><th>Evaluador</th><th>Sitio</th>
-        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th>
+        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th></th>
       </tr></thead>
       <tbody>
         ${rows.map(r => `
@@ -316,6 +348,7 @@ function renderTable(rows) {
               </div>
             </td>
             <td><span class="verdict-chip ${vClass(r.veredicto)}">${r.veredicto || '—'}</span></td>
+            <td><button class="del-btn" onclick="openDeleteModal('${r.id}')">🗑</button></td>
           </tr>`).join('')}
       </tbody>
     </table>`;
@@ -323,6 +356,92 @@ function renderTable(rows) {
 }
 
 loadData();
+
+// ── Delete ──
+// ── Foto Modal ──
+function openFotoModal(fotosJson, sitio, fecha) {
+  const fotos = typeof fotosJson === 'string' ? JSON.parse(fotosJson) : fotosJson;
+  document.getElementById('fotoModalSub').textContent = [sitio, fecha].filter(Boolean).join(' · ');
+  const grid = document.getElementById('fotoGrid');
+  if (!fotos || !fotos.length) {
+    grid.innerHTML = '<div class="foto-empty">Nenhuma foto registrada / No hay fotos registradas.</div>';
+  } else {
+    grid.innerHTML = fotos.map((url, i) =>
+      `<a href="${url}" target="_blank" title="Abrir foto ${i+1}">
+        <img src="${url}" alt="Foto ${i+1}" loading="lazy" onerror="this.parentElement.style.background='#f0f0f0'">
+      </a>`
+    ).join('');
+  }
+  document.getElementById('fotoModal').classList.add('open');
+}
+function closeFotoModal() {
+  document.getElementById('fotoModal').classList.remove('open');
+}
+document.getElementById('fotoModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('fotoModal')) closeFotoModal();
+});
+
+const ADMIN_PASS = 'BK2026';
+let pendingDeleteId = null;
+
+function openDeleteModal(id) {
+  pendingDeleteId = id;
+  document.getElementById('delPass').value = '';
+  document.getElementById('delErr').textContent = '';
+  document.getElementById('delModal').classList.add('open');
+  setTimeout(() => document.getElementById('delPass').focus(), 80);
+}
+
+function closeModal() {
+  document.getElementById('delModal').classList.remove('open');
+  pendingDeleteId = null;
+}
+
+async function confirmDelete() {
+  const pass = document.getElementById('delPass').value;
+  if (pass !== ADMIN_PASS) {
+    document.getElementById('delErr').textContent = 'Contraseña incorrecta.';
+    document.getElementById('delPass').focus();
+    return;
+  }
+  const { error } = await _sb.from('evaluaciones').delete().eq('id', pendingDeleteId);
+  if (error) { document.getElementById('delErr').textContent = 'Error al eliminar.'; return; }
+  closeModal();
+  loadData();
+}
+
+document.getElementById('delModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
 </script>
+
+<!-- Delete Modal -->
+<!-- Modal de Fotos -->
+<div class="foto-modal-overlay" id="fotoModal">
+  <div class="foto-modal">
+    <div class="foto-modal-hdr">
+      <div>
+        <div class="foto-modal-title">📷 Fotos da Avaliação</div>
+        <div style="font-size:11px;color:#666;margin-top:3px" id="fotoModalSub"></div>
+      </div>
+      <button class="foto-modal-close" onclick="closeFotoModal()">×</button>
+    </div>
+    <div class="foto-grid" id="fotoGrid"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="delModal">
+  <div class="modal">
+    <h4>🗑 Eliminar evaluación</h4>
+    <p>Esta acción no se puede deshacer. Ingresá la contraseña de administrador para confirmar.</p>
+    <input type="password" id="delPass" placeholder="Contraseña" onkeydown="if(event.key==='Enter') confirmDelete()">
+    <div class="modal-err" id="delErr"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-confirm" onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
