@@ -6,6 +6,7 @@
 <title>Dashboard BK Estándar — Mercado Libre</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --y: #FFE600; --yd: #E6CF00; --dk: #1A1A1A;
@@ -25,6 +26,12 @@
   .hdr-btn:hover { background: #333; }
   .refresh-btn { background: transparent; border: 2px solid var(--dk); color: var(--dk); padding: 5px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; cursor: pointer; }
   .refresh-btn:hover { background: rgba(0,0,0,.06); }
+  .export-btn { background: #00A650; color: white; border: none; padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .export-btn:hover { background: #008a42; }
+  .export-btn-xl { background: #1D6F42; color: white; border: none; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .export-btn-xl:hover { background: #155234; }
+  .export-btn-gs { background: #4285F4; color: white; border: none; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .export-btn-gs:hover { background: #2b6fdb; }
 
   main { max-width: 1100px; margin: 0 auto; padding: 22px 16px 60px; }
 
@@ -232,7 +239,16 @@
   <div class="table-wrap">
     <div class="table-head">
       <h3>Historial de Evaluaciones</h3>
-      <span class="table-count" id="tblCount"></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="table-count" id="tblCount"></span>
+        <button class="export-btn-xl" onclick="exportExcel()" title="Exportar para Excel">
+          📊 Excel
+        </button>
+        <button class="export-btn-gs" onclick="exportCSV()" title="Exportar CSV para Google Sheets">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H7v-2h6v2zm4-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          Google Sheets
+        </button>
+      </div>
     </div>
     <div id="tblBody">
       <div class="loading">Cargando datos...</div>
@@ -267,6 +283,7 @@ function populateSiteFilter() {
 }
 
 let ACTIVE_TAB = 'BK Estándar';
+let CURRENT_ROWS = [];
 
 function setTab(tipo) {
   ACTIVE_TAB = tipo;
@@ -294,6 +311,7 @@ function applyFilters() {
   if (verdict) rows = rows.filter(r => r.veredicto === verdict);
   if (desde)   rows = rows.filter(r => r.fecha >= desde);
   if (hasta)   rows = rows.filter(r => r.fecha <= hasta);
+  CURRENT_ROWS = rows;
   renderKPIs(rows);
   renderCharts(rows);
   renderTable(rows);
@@ -504,6 +522,75 @@ document.getElementById('delModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
+
+// ── Export ──
+function buildExportData(rows) {
+  return rows.map(r => ({
+    'Fecha':         r.fecha || '',
+    'Evaluador':     r.evaluador || '',
+    'Sitio':         r.sitio || '',
+    'País':          r.pais || '',
+    'Equipo':        r.equipo_tipo || 'BK Estándar',
+    'Eq. Estándar %': r.score_eq !== null ? r.score_eq + '%' : '',
+    'Estructura %':  r.score_es !== null ? r.score_es + '%' : '',
+    'Score Final %': r.score_final !== null ? r.score_final + '%' : '',
+    'Veredicto':     r.veredicto || '',
+    'Fotos':         (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0,
+    'ID':            r.id || ''
+  }));
+}
+
+function exportExcel() {
+  if (!CURRENT_ROWS.length) { alert('Nenhum dado para exportar.'); return; }
+  const data = buildExportData(CURRENT_ROWS);
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:12},{wch:22},{wch:14},{wch:8},{wch:14},
+    {wch:14},{wch:13},{wch:14},{wch:12},{wch:7},{wch:36}
+  ];
+
+  // Header row style (yellow background)
+  const headerKeys = Object.keys(data[0]);
+  headerKeys.forEach((_, i) => {
+    const cell = XLSX.utils.encode_cell({r:0, c:i});
+    if (ws[cell]) {
+      ws[cell].s = {
+        fill: { fgColor: { rgb: "FFE600" } },
+        font: { bold: true },
+        alignment: { horizontal: "center" }
+      };
+    }
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, ACTIVE_TAB.replace(' ','_'));
+
+  const tab = ACTIVE_TAB.replace(/\s/g,'_');
+  const today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Evaluaciones_${tab}_${today}.xlsx`);
+}
+
+function exportCSV() {
+  if (!CURRENT_ROWS.length) { alert('Nenhum dado para exportar.'); return; }
+  const data = buildExportData(CURRENT_ROWS);
+  const headers = Object.keys(data[0]);
+  const csvRows = [
+    headers.join(','),
+    ...data.map(row => headers.map(h => {
+      const val = String(row[h] ?? '').replace(/"/g, '""');
+      return val.includes(',') || val.includes('"') || val.includes('\n') ? `"${val}"` : val;
+    }).join(','))
+  ];
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const tab = ACTIVE_TAB.replace(/\s/g,'_');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `Evaluaciones_${tab}_${today}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
 </script>
 
 <!-- Delete Modal -->
