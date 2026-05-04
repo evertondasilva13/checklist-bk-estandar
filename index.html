@@ -765,7 +765,7 @@ async function finalize() {
     if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
   });
 
-  // ── Validate: items rated Malo must have comment or photo ──
+  // ── Validate: ALL rated items must have comment or photo ──
   const allItems = document.querySelectorAll('.item');
   const secs = [
     { key:'eq', offset:0  },
@@ -775,7 +775,7 @@ async function finalize() {
   const missing = [];
   secs.forEach(({ key, offset }) => {
     R[key].forEach((val, i) => {
-      if (val !== 'malo') return;
+      if (val === null) return; // não avaliado ainda, pula
       const el = allItems[offset + i];
       if (!el) return;
       const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
@@ -789,8 +789,8 @@ async function finalize() {
   if (missing.length > 0) {
     showValidationToast(
       LANG==='pt'
-        ? 'Itens com Ruim precisam de comentário ou foto:'
-        : 'Ítems con Malo requieren comentario o foto:',
+        ? 'Todos os itens precisam de comentário ou foto:'
+        : 'Todos los ítems requieren comentario o foto:',
       missing
     );
     return;
