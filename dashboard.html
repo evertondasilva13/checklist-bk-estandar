@@ -86,7 +86,6 @@
   .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
   .score-bar { height: 6px; border-radius: 3px; min-width: 4px; }
 
-
   /* Delete modal */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:999; align-items:center; justify-content:center; }
   .modal-overlay.open { display:flex; }
@@ -257,6 +256,36 @@
 
 </main>
 
+<!-- ✅ Modais ANTES do script para garantir que existam no DOM -->
+
+<!-- Modal de Fotos -->
+<div class="foto-modal-overlay" id="fotoModal">
+  <div class="foto-modal">
+    <div class="foto-modal-hdr">
+      <div>
+        <div class="foto-modal-title">📷 Fotos da Avaliação</div>
+        <div style="font-size:11px;color:#666;margin-top:3px" id="fotoModalSub"></div>
+      </div>
+      <button class="foto-modal-close" onclick="closeFotoModal()">×</button>
+    </div>
+    <div class="foto-grid" id="fotoGrid"></div>
+  </div>
+</div>
+
+<!-- Modal de Delete -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal">
+    <h4>🗑 Eliminar evaluación</h4>
+    <p>Esta acción no se puede deshacer. Ingresá la contraseña de administrador para confirmar.</p>
+    <input type="password" id="delPass" placeholder="Contraseña" onkeydown="if(event.key==='Enter') confirmDelete()">
+    <div class="modal-err" id="delErr"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-confirm" onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const _sb = supabase.createClient(
   'https://amdaounmybtrcpkqfcgx.supabase.co',
@@ -339,7 +368,6 @@ function renderKPIs(rows) {
 }
 
 function renderCharts(rows) {
-  // Score por sitio
   const siteMap = {};
   rows.forEach(r => {
     if (!r.sitio || r.score_final === null) return;
@@ -366,11 +394,10 @@ function renderCharts(rows) {
     }
   });
 
-  // Distribución veredictos
   const vCounts = { Aprobado: 0, Aprovado: 0, Ajustes: 0, Reprobado: 0, Reprovado: 0 };
   rows.forEach(r => { if (r.veredicto && vCounts[r.veredicto] !== undefined) vCounts[r.veredicto]++; });
-  const aprobado = (vCounts.Aprobado || 0) + (vCounts.Aprovado || 0);
-  const ajustes  = vCounts.Ajustes || 0;
+  const aprobado  = (vCounts.Aprobado || 0) + (vCounts.Aprovado || 0);
+  const ajustes   = vCounts.Ajustes || 0;
   const reprobado = (vCounts.Reprobado || 0) + (vCounts.Reprovado || 0);
 
   if (chartVerdict) chartVerdict.destroy();
@@ -382,9 +409,7 @@ function renderCharts(rows) {
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 16 } }
-      }
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 16 } } }
     }
   });
 }
@@ -435,11 +460,9 @@ function renderTable(rows) {
 
 loadData();
 
-// ── Delete ──
 // ── Foto Modal ──
 function openFotoModal(fotosJson, sitio, fecha) {
   const raw = typeof fotosJson === 'string' ? JSON.parse(fotosJson) : fotosJson;
-  // Normalize: old format = string URL, new format = {url, item, num, rating, type}
   const fotos = raw.map(f => typeof f === 'string'
     ? { url: f, item: null, num: null, rating: null, type: 'image' } : f);
 
@@ -482,13 +505,16 @@ function openFotoModal(fotosJson, sitio, fecha) {
   }
   document.getElementById('fotoModal').classList.add('open');
 }
+
 function closeFotoModal() {
   document.getElementById('fotoModal').classList.remove('open');
 }
+
 document.getElementById('fotoModal').addEventListener('click', e => {
   if (e.target === document.getElementById('fotoModal')) closeFotoModal();
 });
 
+// ── Delete ──
 const ADMIN_PASS = 'BK2026';
 let pendingDeleteId = null;
 
@@ -522,21 +548,20 @@ document.getElementById('delModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-
 // ── Export ──
 function buildExportData(rows) {
   return rows.map(r => ({
-    'Fecha':         r.fecha || '',
-    'Evaluador':     r.evaluador || '',
-    'Sitio':         r.sitio || '',
-    'País':          r.pais || '',
-    'Equipo':        r.equipo_tipo || 'BK Estándar',
+    'Fecha':          r.fecha || '',
+    'Evaluador':      r.evaluador || '',
+    'Sitio':          r.sitio || '',
+    'País':           r.pais || '',
+    'Equipo':         r.equipo_tipo || 'BK Estándar',
     'Eq. Estándar %': r.score_eq !== null ? r.score_eq + '%' : '',
-    'Estructura %':  r.score_es !== null ? r.score_es + '%' : '',
-    'Score Final %': r.score_final !== null ? r.score_final + '%' : '',
-    'Veredicto':     r.veredicto || '',
-    'Fotos':         (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0,
-    'ID':            r.id || ''
+    'Estructura %':   r.score_es !== null ? r.score_es + '%' : '',
+    'Score Final %':  r.score_final !== null ? r.score_final + '%' : '',
+    'Veredicto':      r.veredicto || '',
+    'Fotos':          (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0,
+    'ID':             r.id || ''
   }));
 }
 
@@ -544,14 +569,10 @@ function exportExcel() {
   if (!CURRENT_ROWS.length) { alert('Nenhum dado para exportar.'); return; }
   const data = buildExportData(CURRENT_ROWS);
   const ws = XLSX.utils.json_to_sheet(data);
-
-  // Column widths
   ws['!cols'] = [
     {wch:12},{wch:22},{wch:14},{wch:8},{wch:14},
     {wch:14},{wch:13},{wch:14},{wch:12},{wch:7},{wch:36}
   ];
-
-  // Header row style (yellow background)
   const headerKeys = Object.keys(data[0]);
   headerKeys.forEach((_, i) => {
     const cell = XLSX.utils.encode_cell({r:0, c:i});
@@ -563,10 +584,8 @@ function exportExcel() {
       };
     }
   });
-
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, ACTIVE_TAB.replace(' ','_'));
-
   const tab = ACTIVE_TAB.replace(/\s/g,'_');
   const today = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `Evaluaciones_${tab}_${today}.xlsx`);
@@ -593,32 +612,5 @@ function exportCSV() {
 }
 </script>
 
-<!-- Delete Modal -->
-<!-- Modal de Fotos -->
-<div class="foto-modal-overlay" id="fotoModal">
-  <div class="foto-modal">
-    <div class="foto-modal-hdr">
-      <div>
-        <div class="foto-modal-title">📷 Fotos da Avaliação</div>
-        <div style="font-size:11px;color:#666;margin-top:3px" id="fotoModalSub"></div>
-      </div>
-      <button class="foto-modal-close" onclick="closeFotoModal()">×</button>
-    </div>
-    <div class="foto-grid" id="fotoGrid"></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="delModal">
-  <div class="modal">
-    <h4>🗑 Eliminar evaluación</h4>
-    <p>Esta acción no se puede deshacer. Ingresá la contraseña de administrador para confirmar.</p>
-    <input type="password" id="delPass" placeholder="Contraseña" onkeydown="if(event.key==='Enter') confirmDelete()">
-    <div class="modal-err" id="delErr"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="modal-confirm" onclick="confirmDelete()">Eliminar</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
