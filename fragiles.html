@@ -93,6 +93,8 @@
   .ref-photos { margin: 10px 0 6px; }
   .ref-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 6px; }
   .ref-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ref-img-wrap { display: inline-flex; flex-direction: column; align-items: center; }
+  .ref-img-lbl { font-size: 10px; font-weight: 700; color: #1d4ed8; text-align: center; margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
   .ref-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid var(--br); cursor: zoom-in; transition: border-color .15s; }
   .ref-img:hover { border-color: var(--dk); }
   .lb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:999; align-items:center; justify-content:center; cursor:zoom-out; }
@@ -277,7 +279,9 @@
 <script>
 
 // ── Supabase ──
-const _sb = supabase.createClient('https://amdaounmybtrcpkqfcgx.supabase.co', 'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C');
+let _sb = null;
+try { _sb = supabase.createClient('https://amdaounmybtrcpkqfcgx.supabase.co', 'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C'); }
+catch(e) { console.warn('Supabase CDN not loaded:', e); }
 
 // ── SVG bar icons ──
 const S1 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2" opacity=".18"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
@@ -333,21 +337,23 @@ const ITEMS_PT = {
   eq: [
     { n:1,  t:'Dimensões',              s:'Alto: 1.184m · Largura: 1.2m · Profundidade: 1.6m',
       c:'Ruim: Fora das especificações >15%\n(Prof ≤1,36m; Larg ≤1,02m; Alt ≤1,01m)\n\nIntermediário: Fora entre 5%–14%\n(Prof 1,38–1,52m; Larg 1,03–1,14m; Alt 1,02–1,12m)\n\nExcelente: Conforme com tolerância 1%–4%\n(Prof ≥1,54m; Larg ≥1,15m; Alt ≥1,14m)\n\nRegra: Se uma medida cai em Intermediário → nota final Intermediário. Se superar 15% → Ruim.',
-      h:'Régua do celular · Fita métrica · Trena' },
+      h:'Régua do celular · Fita métrica · Trena',
+      labels:['VISTA SUPERIOR','VISTA FRONTAL (LADO DA MANIJA)'],
+      v:[{ n:'Desenho Técnico', u:'https://drive.google.com/file/d/1HmYCc-QxenyGWGmxRv3SR6y2B6Rvwqet/view?usp=drive_link' }] },
     { n:2,  t:'Rodas — Configuração',   s:'2 giratórias (frente) + 2 fixas (lado da manopla)',
-      c:'Configuração padrão: 2 rodas fixas e 2 giratórias.\nAs rodas fixas devem estar do mesmo lado da manopla e freio.\n\nGiratórias: frente do equipamento.\nFixas: lado da manopla.',
+      c:'Configuração padrão: 2 rodas fixas e 2 giratórias.\nAs rodas fixas devem estar do mesmo lado da manopla e freio.\n\nGiratórias (azul): frente do equipamento — permitem mudanças de direção.\nFixas (vermelho): lado da manopla — garantem estabilidade durante o empurrão.\n\nNo desenho, as rodas destacadas em azul = Giratórias · rodas destacadas em vermelho = Fixas.',
       h:'Teste manual' },
     { n:3,  t:'Manopla — Medida',       s:'Medida nominal: 100 mm',
       c:'Padrão: 100 mm. Tolerância: −2% (mín. 98 mm).\nRequisito de segurança: dimensão de ergonomia.',
       h:'Régua do celular · Fita métrica · Trena' },
     { n:4,  t:'Proteção das Rodas',     s:'Proteção ao redor das rodas',
-      c:'Verificar se o equipamento possui as proteções das rodas.\nLaterais: as proteções devem cobrir toda a dimensão.\nDianteira/traseira: espaço para o freio e manobras de empilhadeira.',
+      c:'Verificar se o equipamento possui as proteções em todas as rodas.\n\nAs proteções laterais devem cobrir toda a extensão vertical da roda, evitando contato direto com pacotes ou obstruções.\nNa parte dianteira/traseira, deve haver recuo suficiente para não interferir com o acionamento do freio nem com as manobras de empilhadeira.\n\nAusência de proteção ou proteção danificada/deformada = Ruim.\nProteção presente mas com folga excessiva ou desgaste visível = Intermediário.\nProteção íntegra e corretamente fixada em todas as rodas = Excelente.',
       h:'Avaliação visual' },
     { n:5,  t:'Para-choques',           s:'Proteção de cantos',
       c:'Verificar se as proteções de cantos do equipamento cumprem com a especificação para evitar colisões do equipamento e das mãos.',
       h:'Avaliação visual' },
     { n:6,  t:'Fundo',                  s:'Placa lisa no fundo',
-      c:'Verificar se o equipamento tem a placa lisa conforme as especificações do protótipo.',
+      c:'O equipamento padrão deve ter o fundo com chapa lisa, sem relevos, soldas expostas, rebites salientes ou quaisquer pontas que possam danificar pacotes ou causar acidentes nos colaboradores.\n\nRuim: ausência da chapa lisa ou presença de pontas/detalhes cortantes.\nIntermediário: chapa presente mas com irregularidades menores (pequenas amassados ou soldas levemente salientes).\nExcelente: chapa lisa, íntegra e sem pontas ou detalhes que representem risco.',
       h:'Avaliação visual' },
     { n:7,  t:'Freio — Existência',     s:'O equipamento tem freio?',
       c:'Verificar se o equipamento tem freio conforme as especificações do protótipo.',
@@ -489,13 +495,18 @@ const REF_IMGS = {
 };
 const R = { eq: new Array(8).fill(null), es: new Array(3).fill(null), pi: new Array(1).fill(null) };
 const SM = { malo:.25, intermedio:.65, excelente:1 };
+function imgWrap(src, i, labels) {
+  var lbl = labels && labels[i] ? '<div class="ref-img-lbl">'+labels[i]+'</div>' : '';
+  return '<div class="ref-img-wrap">'+lbl+'<img class="ref-img" src="'+src+'" alt="ref '+(i+1)+'" onclick="openLightbox(\''+src+'\')">'+'</div>';
+}
+
 function buildItem(item, sec, idx) {
   const key = sec+'_'+idx;
   const refImgs = REF_IMGS[key] || [];
   const refHtml = refImgs.length ? `
     <div class="ref-photos">
       <div class="ref-label">${T[LANG].refLabel}</div>
-      <div class="ref-row">${refImgs.map((src,i) => `<img class="ref-img" src="${src}" alt="ref ${i+1}" onclick="openLightbox('${src}')">`).join('')}</div>
+      <div class="ref-row">${refImgs.map((src,i) => imgWrap(src,i,item.labels)).join('')}</div>
     </div>` : '';
   const vchips = (item.v||[]).map(v => {
     if (v.u) {
@@ -538,8 +549,11 @@ function buildItem(item, sec, idx) {
   </div>`;
 }
 
-Object.entries(ITEMS).forEach(([sec, items]) => {
-  document.getElementById('bd-'+sec).innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
+document.addEventListener('DOMContentLoaded', function() {
+  Object.entries(ITEMS).forEach(([sec, items]) => {
+    const bd = document.getElementById('bd-'+sec);
+    if (bd) bd.innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
+  });
 });
 
 // ── Toggle section ──
