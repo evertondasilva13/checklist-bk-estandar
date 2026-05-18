@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist Diablito de Elevación — Mercado Libre</title>
+<style>
+  :root {
+    --y: #FFE600; --yd: #E6CF00;
+    --dk: #1A1A1A; --g: #666; --lt: #F5F5F5; --br: #E0E0E0;
+    --bad: #E8303F; --mid: #FF7733; --ok: #00A650;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lt); color: var(--dk); }
+
+  header { background: var(--y); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 58px; box-shadow: 0 2px 6px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--dk); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--y); font-weight: 900; font-size: 13px; }
+  .logo-text { font-size: 16px; font-weight: 800; color: var(--dk); }
+  .logo-sub { font-size: 11px; color: #555; }
+
+  .lang-toggle { display:flex; gap:4px; align-items:center; }
+  .lang-toggle button { background:transparent; border:2px solid var(--dk); color:var(--dk); padding:3px 10px; border-radius:14px; font-size:11px; font-weight:800; cursor:pointer; transition:all .15s; }
+  .lang-toggle button.act { background:var(--dk); color:var(--y); }
+  .hdr-score { background: var(--dk); color: var(--y); padding: 6px 16px; border-radius: 18px; font-size: 13px; font-weight: 700; }
+
+  main { max-width: 860px; margin: 0 auto; padding: 18px 12px 80px; }
+
+  .card { background: white; border-radius: 10px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .card-top { border-top: 4px solid var(--y); }
+  .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 13px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:540px){.form-grid{grid-template-columns:1fr}}
+  .field label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 4px; }
+  .field input, .field select { width: 100%; border: 1.5px solid var(--br); border-radius: 7px; padding: 8px 11px; font-size: 13px; outline: none; transition: border-color .2s; background: white; }
+  .field input:focus, .field select:focus { border-color: var(--dk); }
+
+  .prog-wrap { display: flex; align-items: center; gap: 12px; }
+  .prog-wrap span { font-size: 12px; font-weight: 600; min-width: 120px; }
+  .prog-track { flex: 1; height: 7px; background: var(--br); border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--dk); border-radius: 4px; transition: width .4s; width: 0%; }
+  .prog-count { font-size: 12px; font-weight: 700; min-width: 44px; text-align: right; }
+
+  .section { background: white; border-radius: 10px; margin-bottom: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .sec-hdr { background: var(--dk); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .sec-hdr h3 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+  .sec-badge { background: rgba(255,230,0,.18); color: var(--y); padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .sec-weight { font-size: 10px; opacity: .65; }
+  .sec-score { background: var(--y); color: var(--dk); padding: 3px 11px; border-radius: 11px; font-size: 11px; font-weight: 700; min-width: 48px; text-align: center; }
+  .sec-chev { transition: transform .2s; }
+  .sec-chev.open { transform: rotate(180deg); }
+
+  .item { border-bottom: 1px solid var(--br); }
+  .item:last-child { border-bottom: none; }
+
+  .item-hdr { padding: 11px 14px; display: flex; align-items: center; gap: 9px; cursor: pointer; transition: background .12s; }
+  .item-hdr:hover { background: #f9f9f9; }
+  .item-num { background: var(--y); color: var(--dk); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; flex-shrink: 0; }
+  .item-main { flex: 1; min-width: 0; }
+  .item-title { font-size: 13px; font-weight: 600; }
+  .item-sub { font-size: 11px; color: var(--g); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* RATING — compact, inline, always visible */
+  .rating-inline { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
+  .rb {
+    border: 1.5px solid var(--br); background: white;
+    padding: 5px 7px; border-radius: 7px; cursor: pointer;
+    transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    min-width: 46px; color: #C0C0C0;
+  }
+  .rb:hover { border-color: #999; color: #777; }
+  .rb-lbl { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: inherit; line-height: 1; }
+  .rb.malo.sel        { color: var(--bad);  border-color: var(--bad);  background: #fff0f1; }
+  .rb.intermedio.sel  { color: var(--mid);  border-color: var(--mid);  background: #fff5ee; }
+  .rb.excelente.sel   { color: var(--ok);   border-color: var(--ok);   background: #edfff5; }
+  .rb.malo:not(.sel):hover        { color: var(--bad); border-color: #f9b; }
+  .rb.intermedio:not(.sel):hover  { color: var(--mid); border-color: #fdb; }
+  .rb.excelente:not(.sel):hover   { color: var(--ok);  border-color: #9db; }
+
+  .chev { flex-shrink: 0; color: var(--g); transition: transform .2s; }
+  .chev.open { transform: rotate(180deg); }
+
+  .item-detail { display: none; padding: 0 14px 16px 46px; background: #fafafa; border-top: 1px dashed var(--br); }
+  .item-detail.open { display: block; }
+
+  .crit { background: #efefef; border-left: 3px solid var(--dk); border-radius: 0 6px 6px 0; padding: 10px 12px; margin: 10px 0; font-size: 12px; color: #222; line-height: 1.6; white-space: pre-line; }
+  .tool { background: #FFFCE0; border-left: 3px solid var(--yd); border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 12px; color: #4a3e00; line-height: 1.5; }
+  .tool-lbl { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; color: #7a6500; }
+  .media-row { display: flex; gap: 7px; margin: 8px 0; flex-wrap: wrap; }
+  .vchip { background: var(--dk); color: var(--y); padding: 4px 10px; border-radius: 14px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; text-decoration: none; cursor: pointer; }
+  a.vchip:hover { background: #333; }
+  .ref-photos { margin: 10px 0 6px; }
+  .ref-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 6px; }
+  .ref-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ref-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid var(--br); cursor: zoom-in; transition: border-color .15s; }
+  .ref-img:hover { border-color: var(--dk); }
+  .lb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:999; align-items:center; justify-content:center; cursor:zoom-out; }
+  .lb-overlay.open { display:flex; }
+  .lb-img { max-width:90vw; max-height:90vh; border-radius:8px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+
+  /* Validation toast */
+  .val-toast { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1A1A1A; color:white; border-radius:12px; padding:14px 20px; max-width:420px; width:calc(100% - 32px); z-index:200; box-shadow:0 4px 20px rgba(0,0,0,.25); }
+  .val-toast.show { display:block; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+  .val-toast-hdr { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--y); margin-bottom:6px; }
+  .val-toast-list { font-size:12px; color:#ddd; line-height:1.7; }
+  .val-toast-close { margin-left:auto; background:none; border:none; color:#aaa; cursor:pointer; font-size:18px; line-height:1; padding:0 2px; }
+  .val-toast-close:hover { color:white; }
+  .sugg { background: #F5F0FF; border-left: 3px solid #8B6FD4; border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 11.5px; color: #3D2A7A; white-space: pre-line; line-height: 1.5; }
+  .cmnt { margin-top: 9px; }
+  .cmnt label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 4px; }
+  .cmnt textarea { width: 100%; border: 1.5px solid var(--br); border-radius: 6px; padding: 8px 10px; font-size: 12px; resize: vertical; min-height: 58px; outline: none; font-family: inherit; transition: border-color .2s; }
+  .cmnt textarea:focus { border-color: var(--dk); }
+  .photos { margin-top: 9px; }
+  .photos label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 5px; }
+  .pdrop { border: 2px dashed var(--br); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all .2s; background: white; }
+  .pdrop:hover { border-color: var(--dk); background: #f8f8f8; }
+  .pdrop input { display: none; }
+  .pdrop-txt { font-size: 11px; color: var(--g); margin-top: 4px; }
+  .ppreview { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+  .pthumb { position: relative; width: 64px; height: 64px; border-radius: 6px; overflow: hidden; border: 2px solid var(--br); }
+  .pthumb img { width: 100%; height: 100%; object-fit: cover; }
+  .prm { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,.55); color: white; border: none; border-radius: 50%; width: 15px; height: 15px; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; }
+
+  .score-panel { background: white; border-radius: 10px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border-top: 4px solid var(--y); }
+  .score-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .srows { display: flex; flex-direction: column; gap: 10px; }
+  .srow { display: flex; align-items: center; gap: 9px; }
+  .srow-lbl { font-size: 12px; font-weight: 600; min-width: 158px; }
+  .sbar-wrap { flex: 1; height: 9px; background: var(--br); border-radius: 5px; overflow: hidden; }
+  .sbar { height: 100%; border-radius: 5px; transition: width .5s, background .3s; background: var(--dk); width: 0%; }
+  .sval { min-width: 42px; text-align: right; font-size: 13px; font-weight: 700; }
+  .sdiv { border: none; border-top: 1px solid var(--br); margin: 5px 0; }
+  .stotal { display: flex; align-items: center; gap: 9px; background: var(--dk); border-radius: 8px; padding: 13px 15px; margin-top: 5px; }
+  .stotal-lbl { font-size: 13px; font-weight: 700; color: white; flex: 1; }
+  .stotal-val { font-size: 21px; font-weight: 900; color: var(--y); }
+  .verdict { font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 14px; margin-left: 5px; }
+  .v-rep { background: var(--bad); color: white; }
+  .v-ev  { background: var(--mid); color: white; }
+  .v-aj  { background: #D07800; color: white; }
+  .v-ap  { background: var(--ok);  color: white; }
+  .scale-note { margin-top: 12px; font-size: 11px; color: var(--g); line-height: 1.7; }
+
+  .actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+  .btn { padding: 10px 22px; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all .15s; }
+  .btn-outline { background: white; color: var(--dk); border: 2px solid var(--dk); }
+  .btn-outline:hover { background: #f0f0f0; }
+  .btn-y { background: var(--y); color: var(--dk); }
+  .btn-y:hover { background: var(--yd); }
+  .btn-dk { background: var(--dk); color: var(--y); }
+  .btn-dk:hover { background: #333; }
+  @media print { header{position:relative} .btn{display:none} .item-detail{display:block!important} .pdrop{display:none} }
+</style>
+<!-- Validation toast -->
+<div class="val-toast" id="valToast">
+  <div class="val-toast-hdr">
+    <span>⚠️</span>
+    <span id="valToastMsg"></span>
+    <button class="val-toast-close" onclick="document.getElementById('valToast').classList.remove('show')">×</button>
+  </div>
+  <div class="val-toast-list" id="valToastList"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">ML</div>
+    <div>
+      <div class="logo-text" data-i18n="title">Checklist Diablito de Elevación</div>
+      <div class="logo-sub" data-i18n="subtitle">Evaluación de Equipamiento</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="lang-toggle">
+      <button id="btn-pt" onclick="switchLang('pt')">PT</button>
+      <button id="btn-es" onclick="switchLang('es')" class="act">ES</button>
+    </div>
+    <div class="hdr-score">Nota: <span id="hdrVal">—</span></div>
+  </div>
+</header>
+
+<main>
+
+<div class="card card-top">
+  <h2 data-i18n="infoTitle">Información de la Evaluación</h2>
+  <div class="form-grid">
+    <div class="field"><label data-i18n="evaluador">Evaluador</label><input type="text" id="evaluador" data-i18n-ph="evaluadorPh" placeholder="Tu nombre completo"></div>
+    <div class="field"><label data-i18n="fecha">Fecha</label><input type="date" id="fecha"></div>
+    <div class="field"><label data-i18n="sitio">Sitio / Almacén</label><input type="text" id="sitio" data-i18n-ph="sitioPh" placeholder="Ej: CD São Paulo"></div>
+    <div class="field"><label data-i18n="pais">País</label>
+      <select id="pais">
+        <option value="">— Seleccionar —</option>
+        <option value="MLB">MLB — Brasil</option>
+        <option value="MLA">MLA — Argentina</option>
+        <option value="MLM">MLM — México</option>
+        <option value="MLC">MLC — Chile</option>
+        <option value="MCO">MCO — Colombia</option>
+        <option value="MLU">MLU — Uruguay</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="prog-wrap">
+    <span data-i18n="itensEval">Ítems evaluados</span>
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <div class="prog-count" id="pCount">0 / 16</div>
+  </div>
+</div>
+
+<!-- EQUIPO ESTÁNDAR -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('eq',this)">
+    <h3><span data-i18n="secEq">Diablito de Elevación</span> <span class="sec-badge">9 <span data-i18n="items">ítems</span></span> <span class="sec-weight">· 60%</span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-eq">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-eq">
+    <!-- items injected by JS -->
+  </div>
+</div>
+
+<!-- ESTRUCTURA -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('es',this)">
+    <h3><span data-i18n="secEs">Estructura</span> <span class="sec-badge">7 <span data-i18n="items2">ítems</span></span> <span class="sec-weight">· 40%</span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-es">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-es"></div>
+</div>
+
+
+
+<!-- SCORE -->
+<div class="score-panel">
+  <h3 data-i18n="resultado">Resultado de la Evaluación</h3>
+  <div class="srows">
+    <div class="srow"><div class="srow-lbl" data-i18n="lblEq">Diablito de Elevación (60%)</div><div class="sbar-wrap"><div class="sbar" id="bar-eq"></div></div><div class="sval" id="val-eq">—</div></div>
+    <div class="srow"><div class="srow-lbl" data-i18n="lblEs">Estructura (40%)</div><div class="sbar-wrap"><div class="sbar" id="bar-es"></div></div><div class="sval" id="val-es">—</div></div>
+    <hr class="sdiv">
+    <div class="stotal">
+      <div class="stotal-lbl" data-i18n="evalFinal">Evaluación Final</div>
+      <div class="stotal-val" id="val-tot">—</div>
+      <div class="verdict" id="vdict"></div>
+    </div>
+  </div>
+  <div class="scale-note" data-i18n="scaleNote">0%–40% Reprobado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprobado</div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-dk" onclick="finalize()" data-i18n="finalizar">Finalizar evaluación</button>
+</div>
+
+</main>
+<div class="lb-overlay" id="lb" onclick="closeLightbox()"><img class="lb-img" id="lbImg" src="" alt=""></div>
+
+<script>
+
+// ── Supabase ──
+let _sb = null;
+try { _sb = supabase.createClient('https://amdaounmybtrcpkqfcgx.supabase.co', 'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C'); } catch(e) { console.warn('Supabase init failed:', e); }
+
+// ── SVG bar icons ──
+const S1 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2" opacity=".18"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
+const S2 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
+const S3 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2"/><rect x="18" y="0" width="6" height="18" rx="1.2"/></svg>';
+
+
+// ── Language ──
+let LANG = 'es';
+
+const T = {
+  es: {
+    title:'Checklist Diablito de Elevación', subtitle:'Evaluación de Equipamiento',
+    infoTitle:'Información de la Evaluación',
+    evaluador:'Evaluador', evaluadorPh:'Tu nombre completo',
+    fecha:'Fecha', sitio:'Sitio / Almacén', sitioPh:'Ej: CD São Paulo', pais:'País',
+    itensEval:'Ítems evaluados', items:'ítems', items2:'ítems', item1:'ítem',
+    secEq:'Diablito de Elevación', secEs:'Estructura',
+    referencia:'Referencia',
+    resultado:'Resultado de la Evaluación',
+    lblEq:'Diablito de Elevación (60%)', lblEs:'Estructura (40%)',
+    evalFinal:'Evaluación Final',
+    scaleNote:'0%–40% Reprobado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprobado',
+    finalizar:'Finalizar evaluación',
+    malo:'Malo', interm:'Interm.', excel:'Excel.',
+    herramienta:'Herramienta', comentarios:'Comentarios',
+    obsPlaceholder:'Observaciones...', fotos:'Fotos',
+    addMedia:'Agregar fotos o videos', refLabel:'Referencia del patrón',
+    verdicts:{ rep:'Reprobado', aj:'Ajustes', ap:'Aprobado' }
+  },
+  pt: {
+    title:'Checklist Diablito de Elevação', subtitle:'Avaliação de Equipamentos',
+    infoTitle:'Informações da Avaliação',
+    evaluador:'Avaliador', evaluadorPh:'Seu nome completo',
+    fecha:'Data', sitio:'Site / Armazém', sitioPh:'Ex: CD São Paulo', pais:'País',
+    itensEval:'Itens avaliados', items:'itens', items2:'itens', item1:'item',
+    secEq:'Diablito de Elevação', secEs:'Estrutura',
+    referencia:'Referência',
+    resultado:'Resultado da Avaliação',
+    lblEq:'Diablito de Elevação (60%)', lblEs:'Estrutura (40%)',
+    evalFinal:'Avaliação Final',
+    scaleNote:'0%–40% Reprovado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprovado',
+    finalizar:'Finalizar avaliação',
+    malo:'Ruim', interm:'Méd.', excel:'Exce.',
+    herramienta:'Ferramenta', comentarios:'Comentários',
+    obsPlaceholder:'Observações...', fotos:'Fotos',
+    addMedia:'Adicionar fotos ou vídeos', refLabel:'Referência do padrão',
+    verdicts:{ rep:'Reprovado', aj:'Ajustes', ap:'Aprovado' }
+  }
+};
+
+const ITEMS_PT = {
+  eq: [
+    { n:1,  t:'Dimensões Gerais',           s:'Medidas homologadas conforme especificação',
+      c:'Ruim: Dimensões fora das especificações em >10%.\nIntermediário: Dimensões fora entre 3%–10%.\nExcelente: Dimensões dentro das tolerâncias (≤3%).',
+      h:'Fita métrica · Trena · Régua do celular' },
+    { n:2,  t:'Altura Máx. de Elevação',    s:'Elevação máxima operativa conforme especificação',
+      c:'Verificar se a altura máxima de elevação está conforme o projeto.\nRuim: Não atinge altura mínima ou supera máxima permitida.\nIntermediário: Variação 3–10%.\nExcelente: Dentro da tolerância (≤3%).',
+      h:'Fita métrica · Trena' },
+    { n:3,  t:'Plataforma / Garfas',        s:'Dimensões de plataforma ou garfas conforme especificação',
+      c:'Verificar comprimento, largura e espessura da plataforma ou garfas.\nRuim: Dimensões fora de especificação >10%.\nIntermediário: Variação 3–10%.\nExcelente: Dentro da tolerância (≤3%).',
+      h:'Fita métrica · Paquímetro' },
+    { n:4,  t:'Capacidade de Carga',        s:'Capacidade nominal de carga',
+      c:'Verificar se a placa de capacidade está visível e se a capacidade nominal corresponde ao projeto.\nRuim: Sem placa ou capacidade diverge >15%.\nIntermediário: Placa presente mas divergência 5–15%.\nExcelente: Placa visível e capacidade dentro da especificação.',
+      h:'Avaliação visual · Verificação documental' },
+    { n:5,  t:'Acionamento (mãos)',         s:'Sistema de acionamento manual',
+      c:'Verificar o sistema de acionamento manual: esforço, ergonomia e funcionalidade.\nRuim: Sistema com falha, não opera ou esforço excessivo.\nIntermediário: Opera, mas com dificuldade ou desgaste visível.\nExcelente: Acionamento suave e sem folgas excessivas.',
+      h:'Teste manual' },
+    { n:6,  t:'Anti-Retorno (NR-12)',       s:'Mecanismo anti-retorno conforme NR-12',
+      c:'Verificar o mecanismo anti-retorno conforme NR-12.\nRuim: Mecanismo ausente ou inoperante.\nIntermediário: Presente mas com desgaste ou funcionamento irregular.\nExcelente: Mecanismo em perfeitas condições, trava corretamente.',
+      h:'Teste manual · Avaliação visual' },
+    { n:7,  t:'Pino de Trava Redundante',   s:'Pino de trava redundante conforme NR-12',
+      c:'Verificar a existência e condição do pino de trava redundante conforme NR-12.\nRuim: Ausente ou inoperante.\nIntermediário: Presente mas com desgaste ou dificuldade de acionamento.\nExcelente: Presente, funcional e facilmente acionável.',
+      h:'Teste manual · Avaliação visual' },
+    { n:8,  t:'Rodas e Freio',              s:'Condição de rodas e freio',
+      c:'Verificar estado das rodas (desgaste, rachar, fixação) e funcionamento do freio.\nRuim: Rodas danificadas ou freio inoperante.\nIntermediário: Desgaste moderado ou freio com resposta lenta.\nExcelente: Rodas e freio em excelentes condições.',
+      h:'Avaliação visual · Teste manual' },
+    { n:9,  t:'Clearance Mínimo',           s:'Clearance mínimo operativo',
+      c:'Verificar se o clearance mínimo nas zonas de operação está dentro da especificação de segurança.\nRuim: Clearance insuficiente, risco de colisão.\nIntermediário: Clearance no limite da especificação.\nExcelente: Clearance adequado em todas as zonas.',
+      h:'Fita métrica · Avaliação visual' }
+  ],
+  es: [
+    { n:10, t:'Material Alumínio Duro',     s:'Construção em alumínio duro conforme especificação',
+      c:'Verificar se o material utilizado é alumínio duro (liga homologada).\nRuim: Material inadequado ou com corrosão severa.\nIntermediário: Material correto mas com oxidação ou marcas superficiais.\nExcelente: Material em perfeitas condições.',
+      h:'Avaliação visual · Verificação documental' },
+    { n:11, t:'Soldas',                     s:'Solda contínua e uniforme',
+      c:'Analisar a qualidade das soldas em todos os pontos de união.\nSolda contínua e uniforme, sem porosidade, rachaduras ou respingos excessivos.\nSem bordas cortantes que representem risco de acidentes.',
+      h:'Avaliação visual' },
+    { n:12, t:'Integridade Estrutural',     s:'Integridade estrutural geral',
+      c:'Verificar deformações, trincas, dobras ou amassamentos na estrutura.\nRuim: Deformações graves ou trincas visíveis.\nIntermediário: Deformações leves ou marcas superficiais.\nExcelente: Estrutura íntegra sem deformações.',
+      h:'Avaliação visual' },
+    { n:13, t:'Placa de Capacidade',        s:'Placa de capacidade nominal visível e legível',
+      c:'Verificar presença, visibilidade e legibilidade da placa de capacidade.\nRuim: Ausente ou ilegível.\nIntermediário: Presente mas com dificuldade de leitura.\nExcelente: Visível e legível em ótimas condições.',
+      h:'Avaliação visual' },
+    { n:14, t:'Conformidade NR-12',         s:'Segurança em máquinas e equipamentos — Brasil',
+      c:'Verificar conformidade com a NR-12 (Norma Regulamentadora de Segurança no Trabalho em Máquinas e Equipamentos).\nRuim: Itens críticos em não conformidade (risco imediato de acidente).\nIntermediário: Conformidade parcial; pendências não críticas identificadas.\nExcelente: Totalmente conforme com todos os requisitos da NR-12.',
+      h:'Auditoria documental · Inspeção de campo' },
+    { n:15, t:'Conformidade ISO 12100',       s:'Princípios gerais de projeto seguro de máquinas',
+      c:'Verificar conformidade com a ISO 12100 (Segurança de máquinas — Princípios gerais de projeto — Apreciação e redução de riscos).\nRuim: Riscos residuais significativos não mitigados.\nIntermediário: Riscos identificados com mitigação parcial documentada.\nExcelente: Apreciação e redução de riscos completa e documentada.',
+      h:'Revisão de documentação técnica · Auditoria' },
+    { n:16, t:'Conformidade ISO 14119',       s:'Dispositivos de intertravamento associados a proteções',
+      c:'Verificar conformidade com a ISO 14119 (Segurança de máquinas — Dispositivos de intertravamento associados a proteções).\nRuim: Dispositivos de intertravamento ausentes ou inoperantes.\nIntermediário: Presentes mas com falhas menores ou documentação incompleta.\nExcelente: Todos os dispositivos operativos e conformes com a norma.',
+      h:'Teste manual dos intertravamentos · Revisão documental' }
+  ]
+};
+function switchLang(lang) {
+  LANG = lang;
+  // Toggle button styles
+  document.getElementById('btn-pt').classList.toggle('act', lang==='pt');
+  document.getElementById('btn-es').classList.toggle('act', lang==='es');
+  // Update all data-i18n elements
+  const t = T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t[k] !== undefined) el.innerHTML = t[k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const k = el.getAttribute('data-i18n-ph');
+    if (t[k] !== undefined) el.placeholder = t[k];
+  });
+  // Re-render all items
+  const src = lang === 'pt' ? ITEMS_PT : ITEMS;
+  Object.entries(src).forEach(([sec, items]) => {
+    const bd = document.getElementById('bd-'+sec);
+    if (!bd) return;
+    // Copy videos from ITEMS (same in both langs)
+    const itemsWithV = items.map((it,i) => Object.assign({}, it, {v: ITEMS[sec][i].v}));
+    bd.innerHTML = itemsWithV.map((it,i) => buildItem(it,sec,i)).join('');
+    // Restore ratings
+    R[sec].forEach((val,i) => {
+      if (val !== null) {
+        const btns = bd.querySelectorAll('.item');
+        if (btns[i]) {
+          const btn = btns[i].querySelector('.rb.'+val);
+          if (btn) btn.classList.add('sel');
+        }
+      }
+    });
+  });
+  // Update page title
+  document.title = t.title + ' — Mercado Libre';
+}
+
+// ── Item data ──
+const ITEMS = {
+  eq: [
+    { n:1,  t:'Dimensiones Generales',      s:'Medidas homologadas según especificación',
+      c:'Malo: Dimensiones fuera de especificación >10%.\nIntermedio: Dimensiones fuera entre 3%–10%.\nExcelente: Dimensiones dentro de las tolerancias (≤3%).',
+      h:'Cinta métrica · Flexómetro · Regla del celular' },
+    { n:2,  t:'Altura Máx. de Elevación',   s:'Elevación máxima operativa según especificación',
+      c:'Verificar si la altura máxima de elevación está conforme al proyecto.\nMalo: No alcanza altura mínima o supera la máxima permitida.\nIntermedio: Variación 3–10%.\nExcelente: Dentro de la tolerancia (≤3%).',
+      h:'Cinta métrica · Flexómetro' },
+    { n:3,  t:'Plataforma / Horquillas',    s:'Dimensiones de plataforma o horquillas según especificación',
+      c:'Verificar longitud, ancho y espesor de la plataforma u horquillas.\nMalo: Dimensiones fuera de especificación >10%.\nIntermedio: Variación 3–10%.\nExcelente: Dentro de la tolerancia (≤3%).',
+      h:'Cinta métrica · Calibrador' },
+    { n:4,  t:'Capacidad de Carga',         s:'Capacidad nominal de carga',
+      c:'Verificar que la placa de capacidad esté visible y que la capacidad nominal corresponda al proyecto.\nMalo: Sin placa o capacidad diverge >15%.\nIntermedio: Placa presente pero divergencia 5–15%.\nExcelente: Placa visible y capacidad dentro de especificación.',
+      h:'Evaluación visual · Verificación documental' },
+    { n:5,  t:'Accionamiento (manos)',       s:'Sistema de accionamiento manual',
+      c:'Verificar el sistema de accionamiento manual: esfuerzo, ergonomía y funcionalidad.\nMalo: Sistema con falla, no opera o esfuerzo excesivo.\nIntermedio: Opera pero con dificultad o desgaste visible.\nExcelente: Accionamiento suave y sin juegos excesivos.',
+      h:'Prueba manual' },
+    { n:6,  t:'Anti-Retorno (NR-12)',        s:'Mecanismo anti-retorno conforme NR-12',
+      c:'Verificar el mecanismo anti-retorno conforme NR-12.\nMalo: Mecanismo ausente o inoperante.\nIntermedio: Presente pero con desgaste o funcionamiento irregular.\nExcelente: Mecanismo en perfectas condiciones, traba correctamente.',
+      h:'Prueba manual · Evaluación visual' },
+    { n:7,  t:'Pasador de Traba Redundante', s:'Pasador de traba redundante conforme NR-12',
+      c:'Verificar la existencia y condición del pasador de traba redundante conforme NR-12.\nMalo: Ausente o inoperante.\nIntermedio: Presente pero con desgaste o dificultad de accionamiento.\nExcelente: Presente, funcional y fácilmente accionable.',
+      h:'Prueba manual · Evaluación visual' },
+    { n:8,  t:'Ruedas y Freno',             s:'Condición de ruedas y freno',
+      c:'Verificar estado de ruedas (desgaste, grietas, fijación) y funcionamiento del freno.\nMalo: Ruedas dañadas o freno inoperante.\nIntermedio: Desgaste moderado o freno con respuesta lenta.\nExcelente: Ruedas y freno en excelentes condiciones.',
+      h:'Evaluación visual · Prueba manual' },
+    { n:9,  t:'Clearance Mínimo',           s:'Clearance mínimo operativo',
+      c:'Verificar que el clearance mínimo en las zonas de operación esté dentro de la especificación de seguridad.\nMalo: Clearance insuficiente, riesgo de colisión.\nIntermedio: Clearance en el límite de la especificación.\nExcelente: Clearance adecuado en todas las zonas.',
+      h:'Cinta métrica · Evaluación visual' }
+  ],
+  es: [
+    { n:10, t:'Material Aluminio Duro',     s:'Construcción en aluminio duro según especificación',
+      c:'Verificar que el material utilizado sea aluminio duro (aleación homologada).\nMalo: Material inadecuado o con corrosión severa.\nIntermedio: Material correcto pero con oxidación o marcas superficiales.\nExcelente: Material en perfectas condiciones.',
+      h:'Evaluación visual · Verificación documental' },
+    { n:11, t:'Soldaduras',                 s:'Soldadura continua y uniforme',
+      c:'Analizar la calidad de las soldaduras en todos los puntos de unión.\nSoldadura continua y uniforme, sin porosidad, grietas ni salpicaduras excesivas.\nSin bordes cortantes que representen riesgo de accidentes.',
+      h:'Evaluación visual' },
+    { n:12, t:'Integridad Estructural',     s:'Integridad estructural general',
+      c:'Verificar deformaciones, grietas, dobladuras o abolladuras en la estructura.\nMalo: Deformaciones graves o grietas visibles.\nIntermedio: Deformaciones leves o marcas superficiales.\nExcelente: Estructura íntegra sin deformaciones.',
+      h:'Evaluación visual' },
+    { n:13, t:'Placa de Capacidad',         s:'Placa de capacidad nominal visible y legible',
+      c:'Verificar presencia, visibilidad y legibilidad de la placa de capacidad.\nMalo: Ausente o ilegible.\nIntermedio: Presente pero con dificultad de lectura.\nExcelente: Visible y legible en óptimas condiciones.',
+      h:'Evaluación visual' },
+    { n:14, t:'Conformidad NR-12',          s:'Seguridad en máquinas y equipamentos — Brasil',
+      c:'Verificar conformidad con NR-12 (Norma Regulamentadora de Segurança no Trabalho em Máquinas e Equipamentos).\nMalo: Itens críticos em não conformidade (risco imediato de acidente).\nIntermedio: Conformidade parcial; pendências não críticas identificadas.\nExcelente: Totalmente conforme com todos os requisitos da NR-12.',
+      h:'Auditoria documental · Inspeção de campo' },
+    { n:15, t:'Conformidad ISO 12100',        s:'Principios generales de diseño seguro de máquinas',
+      c:'Verificar conformidad con ISO 12100 (Seguridad de las máquinas — Principios generales para el diseño — Apreciación del riesgo y reducción del riesgo).\nMalo: Riesgos residuales significativos no mitigados.\nIntermedio: Riesgos identificados con mitigación parcial documentada.\nExcelente: Apreciación y reducción de riesgos completa y documentada.',
+      h:'Revisión de documentación técnica · Auditoría' },
+    { n:16, t:'Conformidad ISO 14119',        s:'Dispositivos de enclavamiento asociados a resguardos',
+      c:'Verificar conformidad con ISO 14119 (Seguridad de las máquinas — Dispositivos de enclavamiento asociados a los resguardos).\nMalo: Dispositivos de enclavamiento ausentes o inoperantes.\nIntermedio: Presentes pero con fallas menores o documentación incompleta.\nExcelente: Todos los dispositivos operativos y conformes con la norma.',
+      h:'Prueba manual de enclavamientos · Revisión documental' }
+  ]
+};
+const REF_IMGS = {};
+const R = { eq: new Array(9).fill(null), es: new Array(7).fill(null) };
+
+const SM = { malo:.25, intermedio:.65, excelente:1 };
+function buildItem(item, sec, idx) {
+  const key = sec+'_'+idx;
+  const refImgs = REF_IMGS[key] || [];
+  const refHtml = refImgs.length ? `
+    <div class="ref-photos">
+      <div class="ref-label">${T[LANG].refLabel}</div>
+      <div class="ref-row">${refImgs.map((src,i) => `<img class="ref-img" src="${src}" alt="ref ${i+1}" onclick="openLightbox('${src}')">`).join('')}</div>
+    </div>` : '';
+  const vchips = (item.v||[]).map(v => {
+    if (v.u) {
+      return `<a class="vchip" href="${v.u}" target="_blank" rel="noopener"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${v.n}</a>`;
+    }
+    return `<div class="vchip"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${v.n}</div>`;
+  }).join('');
+  const sugg = item.sugg ? `<div class="sugg">${item.sugg}</div>` : '';
+  return `
+  <div class="item">
+    <div class="item-hdr" onclick="toggleItem(this)">
+      <div class="item-num">${item.n}</div>
+      <div class="item-main">
+        <div class="item-title">${item.t}</div>
+        <div class="item-sub">${item.s}</div>
+      </div>
+      <div class="rating-inline" onclick="event.stopPropagation()">
+        <button class="rb malo"       onclick="rate('${sec}',${idx},'malo',this)">${S1}<span class="rb-lbl">${T[LANG].malo}</span></button>
+        <button class="rb intermedio" onclick="rate('${sec}',${idx},'intermedio',this)">${S2}<span class="rb-lbl">${T[LANG].interm}</span></button>
+        <button class="rb excelente"  onclick="rate('${sec}',${idx},'excelente',this)">${S3}<span class="rb-lbl">${T[LANG].excel}</span></button>
+      </div>
+      <div class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div>
+    </div>
+    <div class="item-detail">
+      ${refHtml}
+      <div class="crit">${item.c}</div>
+      <div class="tool"><div class="tool-lbl">${T[LANG].herramienta}</div>${item.h}</div>
+      ${vchips ? `<div class="media-row">${vchips}</div>` : ''}
+      ${sugg}
+      <div class="cmnt"><label>${T[LANG].comentarios}</label><textarea placeholder="${T[LANG].obsPlaceholder}"></textarea></div>
+      <div class="photos"><label>${T[LANG].fotos}</label>
+        <div class="pdrop" onclick="this.querySelector('input').click()">
+          <input type="file" accept="image/*,video/*" multiple onchange="previewF(this)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <div class="pdrop-txt">${T[LANG].addMedia}</div>
+        </div>
+        <div class="ppreview"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAllItems() {
+  Object.entries(ITEMS).forEach(([sec, items]) => {
+    const bd = document.getElementById('bd-'+sec);
+    if (bd) bd.innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderAllItems);
+} else {
+  renderAllItems();
+}
+
+// ── Toggle section ──
+function toggleSec(id, hdr) {
+  const bd = document.getElementById('bd-'+id);
+  const chev = hdr.querySelector('.sec-chev');
+  const open = bd.style.display !== 'none';
+  bd.style.display = open ? 'none' : 'block';
+  chev.classList.toggle('open', !open);
+}
+
+// ── Toggle item ──
+function toggleItem(hdr) {
+  const det = hdr.nextElementSibling;
+  const chev = hdr.querySelector('.chev');
+  det.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+// ── Rate with toggle ──
+function rate(sec, idx, val, btn) {
+  if (btn.classList.contains('sel')) {
+    R[sec][idx] = null;
+    btn.classList.remove('sel');
+    calcAll();
+    return;
+  }
+  R[sec][idx] = val;
+  btn.closest('.rating-inline').querySelectorAll('.rb').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  calcAll();
+  // Auto-advance: close current item, open next
+  const currentHdr = btn.closest('.item-hdr');
+  if (currentHdr) {
+    const currentDet = currentHdr.nextElementSibling;
+    if (currentDet && currentDet.classList.contains('open')) {
+      currentDet.classList.remove('open');
+      const chev = currentHdr.querySelector('.chev');
+      if (chev) chev.classList.remove('open');
+    }
+    const nextItem = currentHdr.closest('.item').nextElementSibling;
+    if (nextItem && nextItem.classList.contains('item')) {
+      const nextHdr = nextItem.querySelector('.item-hdr');
+      const nextDet = nextItem.querySelector('.item-detail');
+      if (nextHdr && nextDet && !nextDet.classList.contains('open')) {
+        nextDet.classList.add('open');
+        const nextChev = nextHdr.querySelector('.chev');
+        if (nextChev) nextChev.classList.add('open');
+        setTimeout(() => nextHdr.scrollIntoView({behavior:'smooth', block:'nearest'}), 80);
+      }
+    }
+  }
+}
+
+// ── Calc ──
+function avg(sec) {
+  const vals = R[sec].filter(v => v !== null);
+  if (!vals.length) return null;
+  return vals.reduce((a,v) => a + SM[v], 0) / vals.length;
+}
+
+function setBar(id, score) {
+  const bar = document.getElementById('bar-'+id);
+  const val = document.getElementById('val-'+id);
+  const bdg = document.getElementById('sc-'+id);
+  if (score === null) {
+    bar.style.width = '0%'; val.textContent = '—'; val.style.color = '#999';
+    if (bdg) bdg.textContent = '—'; return;
+  }
+  const p = Math.round(score * 100);
+  const c = p<=40 ? 'var(--bad)' : p<=80 ? 'var(--mid)' : 'var(--ok)';
+  bar.style.width = p+'%'; bar.style.background = c;
+  val.textContent = p+'%'; val.style.color = c;
+  if (bdg) bdg.textContent = p+'%';
+}
+
+function calcAll() {
+  const eq = avg('eq'), es = avg('es');
+  setBar('eq', eq); setBar('es', es);
+
+  const done = ['eq','es'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
+  document.getElementById('pFill').style.width = (done/16*100)+'%';
+  document.getElementById('pCount').textContent = done+' / 16';
+
+  let fin = null;
+  if (eq!==null && es!==null) fin = eq*.6 + es*.4;
+  else if (eq!==null) fin = eq*.6;
+  else if (es!==null) fin = es*.4;
+
+  if (fin !== null) {
+    const p = Math.round(fin*100);
+    document.getElementById('val-tot').textContent = p+'%';
+    document.getElementById('hdrVal').textContent = p+'%';
+    const vd = T[LANG].verdicts; const [txt,cls] = p<=40 ? [vd.rep,'v-rep'] : p<=80 ? [vd.aj,'v-aj'] : [vd.ap,'v-ap'];
+    const v = document.getElementById('vdict');
+    v.textContent = txt; v.className = 'verdict '+cls;
+  } else {
+    document.getElementById('val-tot').textContent = '—';
+    document.getElementById('hdrVal').textContent = '—';
+    document.getElementById('vdict').textContent = '';
+  }
+}
+
+// ── Photos ──
+function previewF(input) {
+  const prev = input.closest('.photos').querySelector('.ppreview');
+  Array.from(input.files).forEach(f => {
+    if (f.type.startsWith('image/')) {
+      const r = new FileReader();
+      r.onload = e => {
+        const t = document.createElement('div'); t.className = 'pthumb';
+        t.innerHTML = '<img src="'+e.target.result+'"><button class="prm" onclick="this.parentElement.remove()">×</button>';
+        prev.appendChild(t);
+      };
+      r.readAsDataURL(f);
+    } else {
+      // Video — store File reference directly on the element for upload
+      const sizeMB = (f.size / 1024 / 1024).toFixed(0);
+      const t = document.createElement('div'); t.className = 'pthumb video-thumb';
+      t.style.cssText = 'background:#1A1A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px';
+      t.innerHTML = '<span style="color:#FFE600;font-size:18px">▶</span><span style="color:#FFE600;font-size:7px;text-align:center;padding:0 3px;word-break:break-all">'+f.name.slice(0,12)+'</span><span style="color:#aaa;font-size:7px">'+sizeMB+'MB</span><button class="prm" onclick="this.parentElement.remove()">×</button>';
+      t._videoFile = f; // keep File reference for upload
+      prev.appendChild(t);
+    }
+  });
+}
+
+// ── Export ──
+function exportData() {
+  const d = {
+    evaluador: document.getElementById('evaluador').value,
+    fecha: document.getElementById('fecha').value,
+    equipoId: document.getElementById('equipoId').value,
+    sitio: document.getElementById('sitio').value,
+    ratings: R, scores: {equipo: avg('eq'), estructura: avg('es')},
+    timestamp: new Date().toISOString()
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+  a.download = 'checklist-bk-'+(d.equipoId||'eval')+'.json';
+  a.click();
+}
+
+// ── Finalize + Save to Supabase ──
+function showValidationToast(msg, items) {
+  document.getElementById('valToastMsg').textContent = msg;
+  document.getElementById('valToastList').innerHTML = items.map(i => '• ' + i).join('<br>');
+  const t = document.getElementById('valToast');
+  t.classList.remove('show');
+  void t.offsetWidth; // force reflow
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 6000);
+  // Scroll to first problematic item in the list (if it mentions a number)
+  const firstNum = items[0]?.match(/^(\d+)\./);
+  if (firstNum) {
+    const idx = parseInt(firstNum[1]) - 1;
+    const el = document.querySelectorAll('.item')[idx];
+    if (el) {
+      el.querySelector('.item-detail')?.classList.add('open');
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  }
+}
+
+async function finalize() {
+  const t = T[LANG];
+  const done = ['eq','es'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
+  if (done < 16) {
+    showValidationToast(
+      LANG==='pt' ? 'Avaliação incompleta' : 'Evaluación incompleta',
+      [LANG==='pt' ? 'Faltam '+(16-done)+' item(ns) por avaliar.' : 'Faltan '+(16-done)+' ítem(s) por evaluar.']
+    );
+    return;
+  }
+
+  // ── Validate required header fields ──
+  const evaluadorVal = document.getElementById('evaluador').value.trim();
+  const sitioVal = document.getElementById('sitio').value.trim();
+  const paisVal = document.getElementById('pais').value.trim();
+  if (!evaluadorVal || !sitioVal || !paisVal) {
+    const missing = [];
+    if (!evaluadorVal) missing.push(LANG==='pt' ? 'Nome do avaliador é obrigatório.' : 'El nombre del evaluador es obligatorio.');
+    if (!sitioVal) missing.push(LANG==='pt' ? 'Site / Operação é obrigatório.' : 'El sitio / operación es obligatorio.');
+    if (!paisVal) missing.push(LANG==='pt' ? 'País é obrigatório.' : 'El país es obligatorio.');
+    document.getElementById('evaluador').style.borderColor = evaluadorVal ? '' : 'var(--bad)';
+    document.getElementById('sitio').style.borderColor = sitioVal ? '' : 'var(--bad)';
+    document.getElementById('pais').style.borderColor = paisVal ? '' : 'var(--bad)';
+    showValidationToast(LANG==='pt' ? 'Campos obrigatórios' : 'Campos obligatorios', missing);
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+  document.getElementById('evaluador').style.borderColor = '';
+  document.getElementById('sitio').style.borderColor = '';
+  document.getElementById('pais').style.borderColor = '';
+
+  // Collect comments
+  const comentarios = {};
+  document.querySelectorAll('.item').forEach((el, i) => {
+    const ta = el.querySelector('textarea');
+    if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
+  });
+
+  // ── Validate: ALL rated items must have comment or photo ──
+  const allItems = document.querySelectorAll('.item');
+  const secs = [
+    { key:'eq', offset:0  },
+    { key:'es', offset:9 }
+  ];
+  const missing = [];
+  secs.forEach(({ key, offset }) => {
+    R[key].forEach((val, i) => {
+      if (val === null) return; // não avaliado ainda, pula
+      const el = allItems[offset + i];
+      if (!el) return;
+      const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
+      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0 || el.querySelectorAll('.ppreview .video-thumb').length > 0;
+      if (!hasComment && !hasPhoto) {
+        const title = el.querySelector('.item-title')?.textContent || ('Item ' + (offset+i+1));
+        missing.push((offset+i+1) + '. ' + title);
+      }
+    });
+  });
+  if (missing.length > 0) {
+    showValidationToast(
+      LANG==='pt'
+        ? 'Todos os itens precisam de comentário ou foto:'
+        : 'Todos los ítems requieren comentario o foto:',
+      missing
+    );
+    return;
+  }
+
+  // Build payload
+  const eq = avg('eq'), es = avg('es');
+  const fin = eq !== null && es !== null ? eq*.6 + es*.4 : eq !== null ? eq*.6 : es*.4;
+  const p = Math.round(fin * 100);
+  const vd = T[LANG].verdicts;
+  const veredicto = p<=40 ? vd.rep : p<=80 ? vd.aj : vd.ap;
+  const evaluador = document.getElementById('evaluador').value || null;
+  const sitio = document.getElementById('sitio').value || null;
+
+  const payload = {
+    evaluador: evaluador,
+    fecha: document.getElementById('fecha').value || null,
+    sitio: sitio,
+    pais: document.getElementById('pais').value || null,
+    idioma: LANG,
+    score_eq: eq !== null ? Math.round(eq*100) : null,
+    score_es: es !== null ? Math.round(es*100) : null,
+    score_final: p,
+    veredicto: veredicto,
+    ratings: { eq: R.eq, es: R.es },
+    comentarios: comentarios,
+    fotos: [],
+    equipo_tipo: 'Diablito de Elevación'
+  };
+
+  // Show saving indicator
+  const btn = document.querySelector('[data-i18n="finalizar"]');
+  const originalText = btn.textContent;
+  btn.textContent = LANG==='pt' ? 'Enviando...' : 'Enviando...';
+  btn.disabled = true;
+
+  try {
+    // ── Upload photos & videos per item (with label context) ──
+    // Build upload queue per item so we can tag each file with its item name
+    const uploadQueue = [];
+    const allItemEls  = document.querySelectorAll('.item');
+    const secDefs = [{ key:'eq', offset:0 }, { key:'es', offset:9 }];
+    secDefs.forEach(({ key, offset }) => {
+      R[key].forEach((val, idx) => {
+        if (val === null) return;
+        const el = allItemEls[offset + idx];
+        if (!el) return;
+        const itemTitle  = el.querySelector('.item-title')?.textContent?.trim() || ('Item ' + (offset+idx+1));
+        const itemNum    = offset + idx + 1;
+        const itemRating = val;
+        el.querySelectorAll('.ppreview img').forEach(img => {
+          uploadQueue.push({ type:'image', src:img.src, itemTitle, itemNum, itemRating });
+        });
+        el.querySelectorAll('.ppreview .video-thumb').forEach(thumb => {
+          if (thumb._videoFile) uploadQueue.push({ type:'video', file:thumb._videoFile, itemTitle, itemNum, itemRating });
+        });
+      });
+    });
+
+    const totalMedia = uploadQueue.length;
+    if (totalMedia > 0) {
+      btn.textContent = (LANG==='pt' ? 'Enviando mídia (0/' : 'Subiendo archivos (0/') + totalMedia + ')...';
+      let uploaded = 0;
+      const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+      const uploadPromises = uploadQueue.map(async (item, i) => {
+        try {
+          let publicUrl = null;
+          if (item.type === 'image') {
+            const src = item.src;
+            if (!src.startsWith('data:')) return;
+            const arr = src.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const ext  = mime.split('/')[1] || 'jpg';
+            const bstr = atob(arr[1]);
+            const u8arr = new Uint8Array(bstr.length);
+            for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
+            const blob = new Blob([u8arr], { type: mime });
+            const path = safeSitio + '/' + Date.now() + '_img' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          } else {
+            const f = item.file;
+            const MAX_MB = 50;
+            if (f.size > MAX_MB * 1024 * 1024) { console.warn('Video >50MB, skipped:', f.name); return; }
+            const ext  = f.name.split('.').pop() || 'mp4';
+            const path = safeSitio + '/' + Date.now() + '_vid' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, f, { contentType: f.type, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          }
+          if (publicUrl) {
+            payload.fotos.push({ url: publicUrl, item: item.itemTitle, num: item.itemNum, rating: item.itemRating, type: item.type });
+          }
+          uploaded++;
+          btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + totalMedia + ')...';
+        } catch(e) { console.warn('Upload failed:', e); }
+      });
+
+      await Promise.all(uploadPromises);
+    }
+
+    btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
+    if (!_sb) throw new Error('Supabase not initialized');
+    const { error } = await _sb.from('evaluaciones').insert([payload]);
+    if (error) throw error;
+
+    // ── Success: redirect to thank-you page ──
+    btn.textContent = LANG==='pt' ? '✓ Enviado!' : '✓ Enviado!';
+    btn.style.background = 'var(--ok)';
+    setTimeout(() => {
+      const params = new URLSearchParams({
+        lang: LANG,
+        score: p,
+        veredicto: veredicto,
+        evaluador: evaluador || '',
+        sitio: sitio || ''
+      });
+      window.location.href = 'obrigado.html?' + params.toString();
+    }, 900);
+
+  } catch(err) {
+    console.error(err);
+    btn.textContent = LANG==='pt' ? 'Erro ao salvar' : 'Error al guardar';
+    btn.style.background = 'var(--bad)';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 3000);
+  }
+}
+
+document.getElementById('fecha').valueAsDate = new Date();
+function openLightbox(src) {
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lb').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lb').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+</script>
+</body>
+</html>
