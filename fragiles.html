@@ -399,7 +399,7 @@ function switchLang(lang) {
   Object.entries(src).forEach(([sec, items]) => {
     const bd = document.getElementById('bd-'+sec);
     // Copy videos from ITEMS (same in both langs)
-    const itemsWithV = items.map((it,i) => Object.assign({}, it, {v: ITEMS[sec][i].v}));
+    const itemsWithV = items.map((it,i) => Object.assign({}, ITEMS[sec][i], it));
     bd.innerHTML = itemsWithV.map((it,i) => buildItem(it,sec,i)).join('');
     // Restore ratings
     R[sec].forEach((val,i) => {
@@ -421,21 +421,23 @@ const ITEMS = {
   eq: [
     { n:1,  t:'Dimensiones',              s:'Alto: 1.184m · Ancho: 1.2m · Profundidad: 1.6m',
       c:'Malo: Fuera de especificaciones >15%\n(Prof ≤1,36m; Ancho ≤1,02m; Alto ≤1,01m)\n\nIntermedio: Fuera entre 5%–14%\n(Prof 1,38–1,52m; Ancho 1,03–1,14m; Alto 1,02–1,12m)\n\nExcelente: Conforme con tolerancia 1%–4%\n(Prof ≥1,54m; Ancho ≥1,15m; Alto ≥1,14m)\n\nRegla: Si una medida cae en Intermedio → calificación final Intermedio. Si supera 15% → Malo.',
-      h:'Regla del celular · Cinta métrica · Flexómetro', v:[] },
+      h:'Regla del celular · Cinta métrica · Flexómetro',
+      labels:['VISTA SUPERIOR','VISTA FRONTAL (LADO DE LA MANIJA)'],
+      v:[{ n:'Plano Técnico', u:'https://drive.google.com/file/d/1HmYCc-QxenyGWGmxRv3SR6y2B6Rvwqet/view?usp=drive_link' }] },
     { n:2,  t:'Ruedas — Configuración',   s:'2 giratorias (frente) + 2 fijas (lado del mango)',
-      c:'Configuración estándar: 2 ruedas fijas y 2 ruedas giratorias.\nLas ruedas fijas deben estar del mismo lado de la manija y freno.\n\nGiratorias: frente del equipo.\nFijas: lado del mango.',
+      c:'Configuración estándar: 2 ruedas fijas y 2 ruedas giratorias.\nLas ruedas fijas deben estar del mismo lado de la manija y freno.\n\nGiratorias (azul): frente del equipo — permiten cambios de dirección.\nFijas (rojo): lado del mango — garantizan estabilidad durante el empuje.\n\nEn el plano, las ruedas destacadas en azul = Giratorias · ruedas destacadas en rojo = Fijas.',
       h:'Prueba manual', v:[] },
     { n:3,  t:'Manija — Medida',          s:'Medida nominal: 100 mm',
       c:'Estándar: 100 mm. Tolerancia: −2% (mín. 98 mm).\nRequisito de seguridad: dimensión ergonómica.',
       h:'Regla del celular · Cinta métrica · Flexómetro', v:[] },
     { n:4,  t:'Protección de Ruedas',     s:'Protección alrededor de las ruedas',
-      c:'Verificar si el equipo cuenta con las protecciones de ruedas.\nLaterales: deben cubrir toda la dimensión.\nDelantera/trasera: espacio para el freno y maniobras de montacargas.',
+      c:'Verificar si el equipo cuenta con las protecciones en todas las ruedas.\n\nLas protecciones laterales deben cubrir toda la extensión vertical de la rueda, evitando contacto directo con paquetes u obstrucciones.\nEn la parte delantera/trasera, debe haber suficiente separación para no interferir con el freno ni con las maniobras de montacargas.\n\nAusencia o daño en la protección = Malo.\nProtección presente pero con holgura excesiva o desgaste visible = Intermedio.\nProtección íntegra y correctamente fijada en todas las ruedas = Excelente.',
       h:'Evaluación visual', v:[] },
     { n:5,  t:'Parachoques',              s:'Protección de esquinas',
       c:'Verificar si las protecciones de las esquinas del equipo cumplen con la especificación para evitar colisiones del equipo y de las manos.',
       h:'Evaluación visual', v:[{n:'Esquinero BK',u:'https://drive.google.com/file/d/1Fao5caLXfPSwZTRPzY5QHBWnx798GLNL/preview'}] },
     { n:6,  t:'Fondo',                    s:'Placa lisa en el fondo',
-      c:'Verificar si el equipo tiene la placa lisa conforme a las especificaciones del prototipo.',
+      c:'El equipo estándar debe tener el fondo con placa lisa, sin relieves, soldaduras expuestas, remaches salientes ni ningún tipo de punta que pueda dañar paquetes o causar accidentes a los colaboradores.\n\nMalo: ausencia de placa lisa o presencia de puntas/detalles cortantes.\nIntermedio: placa presente pero con irregularidades menores (pequeños golpes o soldaduras levemente salientes).\nExcelente: placa lisa, íntegra y sin puntas ni detalles que representen riesgo.',
       h:'Evaluación visual', v:[] },
     { n:7,  t:'Freno — Existencia',       s:'¿El equipo tiene freno?',
       c:'Verificar si el equipo tiene freno conforme a las especificaciones del prototipo.',
