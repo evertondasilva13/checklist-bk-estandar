@@ -70,6 +70,17 @@
   .btn-secondary:hover { background: #333; }
 
   footer { text-align: center; padding: 16px; font-size: 11px; color: #aaa; }
+
+  /* ── Prototype email section ── */
+  .proto-section { margin-top: 16px; padding: 16px 18px; border-radius: 10px; border: 2px solid; text-align: center; }
+  .proto-section.aprovado { border-color: var(--ok); background: #f1f8e9; }
+  .proto-section.reprovado { border-color: var(--bad); background: #fff0f1; }
+  .proto-section h3 { font-size: .95rem; margin-bottom: .35rem; }
+  .proto-section p { font-size: .82rem; color: #666; margin-bottom: .85rem; }
+  .proto-badge { display:inline-block; padding: 2px 10px; border-radius: 20px; font-size:.75rem; font-weight:700; background:#e8f4fd; color:#1565c0; margin-bottom:.6rem; }
+  .btn-email { padding: .65rem 1.4rem; border: none; border-radius: 7px; font-size: .9rem; font-weight: 700; cursor: pointer; color: #fff; text-decoration: none; display:inline-block; }
+  .btn-email.aprovado { background: #388e3c; }
+  .btn-email.reprovado { background: #c62828; }
 </style>
 </head>
 <body>
@@ -109,7 +120,14 @@
 
     <hr class="divider">
 
-    <div class="btn-row">
+    <div id="proto-email-section" style="display:none" class="proto-section">
+      <div class="proto-badge">🧪 Protótipo</div>
+      <h3 id="protoEmailTitle"></h3>
+      <p id="protoEmailDesc"></p>
+      <a id="btnEmail" class="btn-email" href="#">📧 <span id="protoEmailBtn">Gerar E-mail</span></a>
+    </div>
+
+    <div class="btn-row" style="margin-top:14px">
       <a class="btn btn-primary" href="index.html" id="btnNew">
         ＋ <span id="btnNewTxt">Nueva evaluación</span>
       </a>
@@ -126,6 +144,9 @@ const score = parseInt(params.get('score') || '0');
 const veredicto = params.get('veredicto') || '';
 const evaluador = params.get('evaluador') || '';
 const sitio = params.get('sitio') || '';
+const tipoAvaliacao = params.get('tipo') || '';
+const fornecedorNome = params.get('fornecedor') || '';
+const NOTA_CORTE_PROTOTIPO = 95;
 
 const T = {
   es: {
@@ -137,7 +158,12 @@ const T = {
     btnNew: 'Nueva evaluación',
     btnDash: 'Ver dashboard',
     footer: '© Mercado Libre — BK Estándar',
-    logoSub: 'BK Estándar — Evaluación'
+    logoSub: 'BK Estándar — Evaluación',
+    protoAprovTitle: '✅ Prototipo Aprobado',
+    protoReprovTitle: '⚠️ Prototipo No Aprobado',
+    protoAprovDesc: 'El prototipo superó la nota de corte. Generar email de aprobación al equipo.',
+    protoReprovDesc: 'El prototipo no superó la nota de corte. Generar email de resultado al equipo.',
+    emailBtn: 'Generar Email'
   },
   pt: {
     title: 'Avaliação Enviada!',
@@ -148,7 +174,12 @@ const T = {
     btnNew: 'Nova avaliação',
     btnDash: 'Ver dashboard',
     footer: '© Mercado Livre — BK Padrão',
-    logoSub: 'BK Padrão — Avaliação'
+    logoSub: 'BK Padrão — Avaliação',
+    protoAprovTitle: '✅ Protótipo Aprovado',
+    protoReprovTitle: '⚠️ Protótipo Não Aprovado',
+    protoAprovDesc: 'O protótipo superou a nota de corte. Gerar e-mail de aprovação para a equipe.',
+    protoReprovDesc: 'O protótipo não superou a nota de corte. Gerar e-mail de resultado para a equipe.',
+    emailBtn: 'Gerar E-mail'
   }
 };
 
@@ -183,6 +214,35 @@ const vClass = veredicto==='Aprobado'||veredicto==='Aprovado' ? 'v-ap' :
 const badge = document.getElementById('verdictBadge');
 badge.textContent = veredicto || '—';
 badge.className = 'verdict-badge ' + vClass;
+
+// ── Prototype email section ──
+if (tipoAvaliacao === 'prototipo') {
+  const aprovado = score >= NOTA_CORTE_PROTOTIPO;
+  const sec = document.getElementById('proto-email-section');
+  sec.style.display = 'block';
+  sec.className = 'proto-section ' + (aprovado ? 'aprovado' : 'reprovado');
+  document.getElementById('protoEmailTitle').textContent = aprovado ? t.protoAprovTitle : t.protoReprovTitle;
+  document.getElementById('protoEmailDesc').textContent  = aprovado ? t.protoAprovDesc  : t.protoReprovDesc;
+  document.getElementById('protoEmailBtn').textContent   = t.emailBtn;
+  const btnEmail = document.getElementById('btnEmail');
+  btnEmail.className = 'btn-email ' + (aprovado ? 'aprovado' : 'reprovado');
+  const status   = aprovado ? (lang==='pt' ? 'APROVADO' : 'APROBADO') : (lang==='pt' ? 'NÃO APROVADO' : 'NO APROBADO');
+  const forn = fornecedorNome || (lang==='pt' ? 'Não informado' : 'No informado');
+  const subject = encodeURIComponent(`[MercadoLibre BK] Protótipo — ${status} — ${forn}`);
+  const body = encodeURIComponent(
+    `Olá,\n\nSegue o resultado da avaliação do protótipo:\n\n` +
+    `Fornecedor: ${forn}\n` +
+    `Site: ${sitio || '—'}\n` +
+    `Avaliador: ${evaluador || '—'}\n` +
+    `\nResultado: ${status}\n` +
+    `Nota Final: ${score}%\n` +
+    `\n${aprovado
+      ? 'O protótipo atendeu aos requisitos mínimos do MercadoLibre e está em condições de atender às demandas operacionais.'
+      : 'O protótipo NÃO atendeu aos requisitos mínimos do MercadoLibre. São necessários ajustes antes da aprovação.'
+    }\n\nEste e-mail foi gerado automaticamente pelo sistema de inspeção BK Equipment.\n`
+  );
+  btnEmail.href = `mailto:?subject=${subject}&body=${body}`;
+}
 </script>
 </body>
 </html>
