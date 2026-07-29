@@ -59,6 +59,13 @@
   .filter-clear:hover { border-color: var(--dk); color: var(--dk); }
 
   /* Equipment Tabs */
+  .tipo-selector { display:flex; gap:10px; margin-bottom:14px; }
+  .tipo-sel-btn { flex:1; padding:14px 12px; border:2.5px solid var(--br); border-radius:12px; background:white; cursor:pointer; text-align:center; font-size:13px; font-weight:700; color:#555; transition:all .18s; }
+  .tipo-sel-btn:hover { border-color:#aaa; background:var(--lt); }
+  .tipo-sel-btn.sel-proto { border-color:#1565c0; background:#e8f4fd; color:#1565c0; }
+  .tipo-sel-btn.sel-mass  { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; }
+  .tipo-sel-btn .ts-icon { font-size:1.8rem; display:block; margin-bottom:.3rem; }
+  .tipo-sel-btn .ts-count { font-size:10px; font-weight:400; opacity:.8; margin-top:.2rem; display:block; }
   .equipo-tabs { display: flex; gap: 0; margin-bottom: 16px; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; }
   .etab { flex: 1; padding: 14px 20px; border: none; cursor: pointer; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s; background: white; color: var(--g); border-bottom: 3px solid transparent; }
   .etab:hover { background: #f9f9f9; color: var(--dk); }
@@ -66,7 +73,10 @@
   .etab.act-frag { background: #e8f4fd; color: #1565c0; border-bottom-color: #1976d2; }
   .etab.act-diab { background: #f0fdf4; color: #166534; border-bottom-color: #16a34a; }
   .etab.act-palet { background: #fdf4ff; color: #7e22ce; border-bottom-color: #9333ea; }
+  .etab.act-flow { background: #fff7ed; color: #c2410c; border-bottom-color: #ea580c; }
   .etab-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(0,0,0,.08); }
+.etab-proto.act-proto { background:#1565c0; color:#fff; }
+.etab-mass.act-mass   { background:#2e7d32; color:#fff; }
   .etab.act-std .etab-count { background: var(--yd); color: var(--dk); }
   .etab.act-frag .etab-count { background: #1976d2; color: white; }
 
@@ -153,6 +163,25 @@
 <div id="conn-banner">⚠️ Erro de conexão com o banco de dados. Verifique sua internet e clique em ↻ Actualizar.</div>
 <main>
 
+  <!-- Tipo Selector -->
+  <div class="tipo-selector">
+    <button class="tipo-sel-btn" id="tsel-todos" onclick="setTipoSel('todos')">
+      <span class="ts-icon">📋</span>
+      <span>Todos</span>
+      <span class="ts-count" id="ts-cnt-todos">0 avaliações</span>
+    </button>
+    <button class="tipo-sel-btn" id="tsel-proto" onclick="setTipoSel('prototipo')">
+      <span class="ts-icon">🧪</span>
+      <span>Protótipos</span>
+      <span class="ts-count" id="ts-cnt-proto">0 avaliações</span>
+    </button>
+    <button class="tipo-sel-btn" id="tsel-mass" onclick="setTipoSel('massivo')">
+      <span class="ts-icon">📦</span>
+      <span>Entrega Massiva</span>
+      <span class="ts-count" id="ts-cnt-mass">0 avaliações</span>
+    </button>
+  </div>
+
   <!-- KPIs -->
   <div class="kpi-grid">
     <div class="kpi">
@@ -203,6 +232,10 @@
     <button class="etab" id="tabPalet" onclick="setTab('Paletão Linha Branca')">
       🟣 Paletão <span class="etab-count" id="cntPalet">0</span>
     </button>
+    <button class="etab" id="tabFlow" onclick="setTab('Flowrack 3x2m')">
+      🟠 Flowrack <span class="etab-count" id="cntFlow">0</span>
+    </button>
+
   </div>
 
   <!-- Filters -->
@@ -294,6 +327,7 @@ async function loadData() {
     return;
   }
   ALL_DATA = data || [];
+  updateTabCounts();
   populateSiteFilter();
   updateTabCounts();
   applyFilters();
@@ -306,14 +340,29 @@ function populateSiteFilter() {
 }
 
 let ACTIVE_TAB = 'BK Estándar';
+let ACTIVE_TIPO = 'todos'; // 'todos' | 'prototipo' | 'massivo'
+
+function setTipoSel(tipo) {
+  ACTIVE_TIPO = tipo;
+  ['todos','proto','mass'].forEach(k => {
+    document.getElementById('tsel-' + k).className = 'tipo-sel-btn';
+  });
+  if (tipo === 'prototipo') document.getElementById('tsel-proto').classList.add('sel-proto');
+  else if (tipo === 'massivo') document.getElementById('tsel-mass').classList.add('sel-mass');
+  updateTabCounts();
+  applyFilters();
+}
 let CURRENT_ROWS = [];
 
 function setTab(tipo) {
   ACTIVE_TAB = tipo;
-  document.getElementById('tabStd').className  = 'etab' + (tipo==='BK Estándar'         ? ' act-std'  : '');
-  document.getElementById('tabFrag').className = 'etab' + (tipo==='BK Fragiles'          ? ' act-frag' : '');
-  document.getElementById('tabDiab').className  = 'etab' + (tipo==='Diablito de Elevación'  ? ' act-diab'  : '');
-  document.getElementById('tabPalet').className = 'etab' + (tipo==='Paletão Linha Branca'   ? ' act-palet' : '');
+  document.getElementById('tabStd').className   = 'etab' + (tipo==='BK Estándar'            ? ' act-std'   : '');
+  document.getElementById('tabFrag').className  = 'etab' + (tipo==='BK Fragiles'             ? ' act-frag'  : '');
+  document.getElementById('tabDiab').className  = 'etab' + (tipo==='Diablito de Elevación'   ? ' act-diab'  : '');
+  document.getElementById('tabPalet').className = 'etab' + (tipo==='Paletão Linha Branca'    ? ' act-palet' : '');
+  document.getElementById('tabFlow').className  = 'etab' + (tipo==='Flowrack 3x2m'            ? ' act-flow'  : '');
+  document.getElementById('tabProto').className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
+  document.getElementById('tabMass').className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
   applyFilters();
 }
 
@@ -324,12 +373,30 @@ function updateTabCounts() {
   document.getElementById('cntStd').textContent  = std;
   document.getElementById('cntFrag').textContent = frag;
   const palet = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'Paletão Linha Branca').length;
+  const flow  = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'Flowrack 3x2m').length;
   document.getElementById('cntDiab').textContent  = diab;
   document.getElementById('cntPalet').textContent = palet;
+  document.getElementById('cntFlow').textContent  = flow;
+  // Update tipo selector counts
+  const tBase = ACTIVE_TIPO === 'todos' ? ALL_DATA :
+                ACTIVE_TIPO === 'prototipo' ? ALL_DATA.filter(r => r.tipo_avaliacao === 'prototipo') :
+                ALL_DATA.filter(r => r.tipo_avaliacao === 'massivo');
+  document.getElementById('ts-cnt-todos').textContent = ALL_DATA.length + ' avaliações';
+  document.getElementById('ts-cnt-proto').textContent = ALL_DATA.filter(r => r.tipo_avaliacao === 'prototipo').length + ' avaliações';
+  document.getElementById('ts-cnt-mass').textContent  = ALL_DATA.filter(r => r.tipo_avaliacao === 'massivo').length + ' avaliações';
+  // Update equipo-tab counts using tipo filter
+  const cntFor = eq => tBase.filter(r => (r.equipo_tipo||'BK Estándar') === eq).length;
+  document.getElementById('cntStd').textContent   = cntFor('BK Estándar');
+  document.getElementById('cntFrag').textContent  = cntFor('BK Fragiles');
+  document.getElementById('cntDiab').textContent  = cntFor('Diablito de Elevación');
+  document.getElementById('cntPalet').textContent = cntFor('Paletão Linha Branca');
+  document.getElementById('cntFlow').textContent  = cntFor('Flowrack 3x2m');
 }
 
 function applyFilters() {
   let rows = ALL_DATA.filter(r => (r.equipo_tipo || 'BK Estándar') === ACTIVE_TAB);
+  if (ACTIVE_TIPO === 'prototipo') rows = rows.filter(r => r.tipo_avaliacao === 'prototipo');
+  else if (ACTIVE_TIPO === 'massivo') rows = rows.filter(r => r.tipo_avaliacao === 'massivo');
   const sitio   = document.getElementById('fSitio').value;
   const pais    = document.getElementById('fPais').value;
   const verdict = document.getElementById('fVerdict').value;
@@ -352,6 +419,7 @@ function clearFilters() {
   document.getElementById('fVerdict').value = '';
   document.getElementById('fDesde').value = '';
   document.getElementById('fHasta').value = '';
+  document.getElementById('fTipo').value = '';
   applyFilters();
 }
 
@@ -429,7 +497,7 @@ function renderTable(rows) {
   const html = `
     <table>
       <thead><tr>
-        <th>Fecha</th><th>Evaluador</th><th>Sitio</th><th>País</th>
+        <th>Fecha</th><th>Evaluador</th><th>Sitio</th><th>País</th><th>Tipo</th><th>Fornecedor</th>
         <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th>Fotos</th><th></th>
       </tr></thead>
       <tbody>
@@ -441,6 +509,8 @@ function renderTable(rows) {
             <td>${r.evaluador || '—'}</td>
             <td><strong>${r.sitio || '—'}</strong></td>
             <td>${r.pais ? `<span style="font-size:10px;font-weight:700;background:#f0f4ff;color:#1a3a8f;padding:2px 8px;border-radius:8px;">${r.pais}</span>` : '—'}</td>
+            <td>${r.tipo_avaliacao === 'prototipo' ? '<span style="font-size:10px;font-weight:700;background:#e8f4fd;color:#1565c0;padding:2px 8px;border-radius:8px;">🧪 Protótipo</span>' : r.tipo_avaliacao === 'massivo' ? '<span style="font-size:10px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;">📦 Massiva</span>' : '—'}</td>
+            <td style="font-size:.82rem;color:#555">${r.fornecedor || '—'}</td>
             <td>${r.score_eq !== null ? r.score_eq+'%' : '—'}</td>
             <td>${r.score_es !== null ? r.score_es+'%' : '—'}</td>
             <td>
