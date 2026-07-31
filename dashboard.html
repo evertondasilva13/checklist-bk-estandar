@@ -75,22 +75,23 @@
   .tipo-sel-btn.sel-mass  { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; }
   .tipo-sel-btn .ts-icon { font-size:1.8rem; display:block; margin-bottom:.3rem; }
   .tipo-sel-btn .ts-count { font-size:10px; font-weight:400; opacity:.8; margin-top:.2rem; display:block; }
-  .equipo-tabs { display: flex; gap: 0; margin-bottom: 16px; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; flex-wrap: wrap; }
-  .etab { flex: 1; min-width: 0; padding: 10px 8px; border: none; cursor: pointer; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all .2s; background: white; color: var(--g); border-bottom: 3px solid transparent; white-space: nowrap; }
-  .etab:hover { background: #f9f9f9; color: var(--dk); }
-  .etab.act-std { background: #FFFCE0; color: var(--dk); border-bottom-color: var(--yd); }
-  .etab.act-frag { background: #e8f4fd; color: #1565c0; border-bottom-color: #1976d2; }
-  .etab.act-diab { background: #f0fdf4; color: #166534; border-bottom-color: #16a34a; }
-  .etab.act-palet { background: #fdf4ff; color: #7e22ce; border-bottom-color: #9333ea; }
-  .etab.act-flow  { background: #fff7ed; color: #c2410c; border-bottom-color: #ea580c; }
-  .etab.act-band  { background: #f0f4ff; color: #1e40af; border-bottom-color: #3b82f6; }
-  .etab.act-test  { background: #fdf2f8; color: #9d174d; border-bottom-color: #db2777; }
-  .etab.act-brsc  { background: #f0fdf9; color: #065f46; border-bottom-color: #059669; }
-  .etab.act-tolva { background: #fef9ec; color: #92400e; border-bottom-color: #d97706; }
-  .etab-count { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 10px; background: var(--dk); color: white; margin-left: 2px; }
+  .equipo-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+  .etab { padding: 12px 8px 10px; border: 1.5px solid var(--br); border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all .2s; background: white; color: var(--g); border-bottom: 3px solid transparent; }
+  .etab:hover { border-color: #bbb; background: #f9f9f9; color: var(--dk); }
+  .etab.act-std   { background: #FFFCE0; color: var(--dk);   border-color: var(--yd);   border-bottom-color: var(--yd); }
+  .etab.act-frag  { background: #e8f4fd; color: #1565c0;   border-color: #1976d2; }
+  .etab.act-diab  { background: #f0fdf4; color: #166534;   border-color: #16a34a; }
+  .etab.act-palet { background: #fdf4ff; color: #7e22ce;   border-color: #9333ea; }
+  .etab.act-flow  { background: #fff7ed; color: #c2410c;   border-color: #ea580c; }
+  .etab.act-band  { background: #f0f4ff; color: #1e40af;   border-color: #3b82f6; }
+  .etab.act-test  { background: #fdf2f8; color: #9d174d;   border-color: #db2777; }
+  .etab.act-brsc  { background: #f0fdf9; color: #065f46;   border-color: #059669; }
+  .etab.act-tolva { background: #fef9ec; color: #92400e;   border-color: #d97706; }
+  .etab-label { font-size: 12px; font-weight: 800; line-height: 1.2; text-align: center; }
+  .etab-count { font-size: 13px; font-weight: 900; padding: 2px 10px; border-radius: 10px; background: var(--dk); color: white; margin-top: 2px; }
 .etab-proto.act-proto { background:#1565c0; color:#fff; }
 .etab-mass.act-mass   { background:#2e7d32; color:#fff; }
-  .etab.act-std   .etab-count { background: var(--yd); color: var(--dk); }
+  .etab.act-std   .etab-count { background: #b8a000; color: white; }
   .etab.act-frag  .etab-count { background: #1976d2; color: white; }
   .etab.act-diab  .etab-count { background: #16a34a; color: white; }
   .etab.act-palet .etab-count { background: #9333ea; color: white; }
@@ -241,33 +242,41 @@
   <!-- Equipment Tabs -->
   <div class="equipo-tabs">
     <button class="etab act-std" id="tabStd" onclick="setTab('BK Estándar')">
-      🟡 BK Estándar <span class="etab-count" id="cntStd">0</span>
+      <span class="etab-label">🟡 BK Estándar</span>
+      <span class="etab-count" id="cntStd">0</span>
     </button>
     <button class="etab" id="tabFrag" onclick="setTab('BK Fragiles')">
-      🔵 BK Fragiles <span class="etab-count" id="cntFrag">0</span>
+      <span class="etab-label">🔵 BK Fragiles</span>
+      <span class="etab-count" id="cntFrag">0</span>
     </button>
     <button class="etab" id="tabDiab" onclick="setTab('Diablito de Elevación')">
-      🟢 Diablito <span class="etab-count" id="cntDiab">0</span>
+      <span class="etab-label">🟢 Diablito</span>
+      <span class="etab-count" id="cntDiab">0</span>
     </button>
     <button class="etab" id="tabPalet" onclick="setTab('Paletão Linha Branca')">
-      🟣 Paletão <span class="etab-count" id="cntPalet">0</span>
+      <span class="etab-label">🟣 Paletão</span>
+      <span class="etab-count" id="cntPalet">0</span>
     </button>
     <button class="etab" id="tabFlow" onclick="setTab('Flowrack 3x2m')">
-      🟠 Flowrack 3x2 <span class="etab-count" id="cntFlow">0</span>
+      <span class="etab-label">🟠 Flowrack 3x2</span>
+      <span class="etab-count" id="cntFlow">0</span>
     </button>
     <button class="etab" id="tabBand" onclick="setTab('Bandeja Aramada BK')">
-      🔷 Bandeja Aramada <span class="etab-count" id="cntBand">0</span>
+      <span class="etab-label">🔷 Bandeja Aramada</span>
+      <span class="etab-count" id="cntBand">0</span>
     </button>
     <button class="etab" id="tabTest" onclick="setTab('Testeira RSC')">
-      🩷 Testeira RSC <span class="etab-count" id="cntTest">0</span>
+      <span class="etab-label">🩷 Testeira RSC</span>
+      <span class="etab-count" id="cntTest">0</span>
     </button>
     <button class="etab" id="tabBrsc" onclick="setTab('Bandeja RSC')">
-      🟩 Bandeja RSC <span class="etab-count" id="cntBrsc">0</span>
+      <span class="etab-label">🟩 Bandeja RSC</span>
+      <span class="etab-count" id="cntBrsc">0</span>
     </button>
     <button class="etab" id="tabTolva" onclick="setTab('Carro Tolva')">
-      🟤 Carro Tolva <span class="etab-count" id="cntTolva">0</span>
+      <span class="etab-label">🟤 Carro Tolva</span>
+      <span class="etab-count" id="cntTolva">0</span>
     </button>
-
   </div>
 
   <!-- Filters -->
