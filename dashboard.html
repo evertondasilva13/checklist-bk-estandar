@@ -601,7 +601,15 @@ function renderTable(rows) {
   document.getElementById('tblBody').innerHTML = html;
 }
 
-document.addEventListener('DOMContentLoaded', () => loadData());
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  const delModal = document.getElementById('delModal');
+  if (delModal) {
+    delModal.addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+  }
+});
 
 // ── Delete ──
 // ── Foto Modal ──
@@ -686,9 +694,7 @@ async function confirmDelete() {
   loadData();
 }
 
-document.getElementById('delModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+// (listener de clique fora do modal movido para DOMContentLoaded acima)
 
 
 // ── Export ──
