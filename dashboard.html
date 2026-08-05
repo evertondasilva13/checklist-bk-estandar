@@ -609,6 +609,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target === this) closeModal();
     });
   }
+  const fotoModal = document.getElementById('fotoModal');
+  if (fotoModal) {
+    fotoModal.addEventListener('click', e => {
+      if (e.target === fotoModal) closeFotoModal();
+    });
+  }
 });
 
 // ── Delete ──
@@ -661,9 +667,7 @@ function openFotoModal(fotosJson, sitio, fecha) {
 function closeFotoModal() {
   document.getElementById('fotoModal').classList.remove('open');
 }
-document.getElementById('fotoModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('fotoModal')) closeFotoModal();
-});
+// (listener fotoModal movido para DOMContentLoaded)
 
 const ADMIN_PASS = 'BK2026';
 let pendingDeleteId = null;
