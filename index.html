@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checklist BK Estándar — Mercado Libre</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root {
     --y: #FFE600; --yd: #E6CF00;
@@ -327,6 +328,13 @@
 let tipoAvaliacao = null;
 let fornecedorNome = '';
 const NOTA_CORTE_PROTOTIPO = 95;
+
+// ── EmailJS config ──
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // Account → API Keys
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // Email Services → Service ID
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // Email Templates → Template ID
+const NOTIFICATION_EMAILS = ['everton.dasilva@mercadolivre.com'];
+const SPEC_URL = 'https://drive.google.com/file/d/1ZDdLnTc942F6seNIJY_MAmbp13gEs1H4/view?usp=drive_link';
 
 function setTipo(tipo) {
   tipoAvaliacao = tipo;
@@ -974,6 +982,32 @@ async function finalize() {
     btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
     const { error } = await _sb.from('evaluaciones').insert([payload]);
     if (error) throw error;
+
+    // ── Email notification: prototipo aprobado ──
+    if (tipoAvaliacao === 'prototipo' && p >= NOTA_CORTE_PROTOTIPO) {
+      try {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email:    NOTIFICATION_EMAILS.join(','),
+          reply_to:    evaluador || '',
+          subject:     'MTM | Prototipo Aprobado — ' + payload.equipo_tipo + ' | ' + (payload.fornecedor || 'N/A'),
+          equipo_tipo: payload.equipo_tipo,
+          fornecedor:  payload.fornecedor  || 'N/A',
+          score_final: p + '%',
+          score_eq:    payload.score_eq    !== null ? payload.score_eq + '%' : 'N/A',
+          score_es:    payload.score_es    !== null ? payload.score_es + '%' : 'N/A',
+          evaluador:   evaluador            || 'N/A',
+          sitio:       sitio                || 'N/A',
+          pais:        payload.pais         || 'N/A',
+          fecha:       payload.fecha        || new Date().toLocaleDateString('es'),
+          spec_url:    SPEC_URL
+        });
+        console.log('Notificación de prototipo aprobado enviada.');
+      } catch (emailErr) {
+        console.warn('Error al enviar notificación:', emailErr);
+        // No bloquea el flujo — evaluación ya guardada en Supabase
+      }
+    }
 
     // ── Success: redirect to thank-you page ──
     btn.textContent = LANG==='pt' ? '✓ Enviado!' : '✓ Enviado!';
