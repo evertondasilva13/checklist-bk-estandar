@@ -153,6 +153,26 @@
   .btn-dk { background: var(--dk); color: var(--y); }
   .btn-dk:hover { background: #333; }
   @media print { header{position:relative} .btn{display:none} .item-detail{display:block!important} .pdrop{display:none} }
+
+/* ── Tipo Modal ── */
+#modal-tipo { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:2000; display:flex; align-items:center; justify-content:center; }
+.modal-box { background:var(--lt); border-radius:14px; padding:2rem 2rem 1.5rem; max-width:440px; width:92%; text-align:center; border:2px solid var(--br); }
+.modal-box h2 { margin:0 0 .4rem; font-size:1.25rem; color:var(--dk); }
+.modal-box p  { margin:0 0 1.4rem; font-size:.9rem; color:var(--g); }
+.tipo-btns { display:flex; gap:.9rem; margin-bottom:1.4rem; }
+.tipo-btn { flex:1; padding:1.1rem .5rem; border:2px solid var(--br); border-radius:10px; background:#fff; cursor:pointer; font-size:.95rem; font-weight:600; color:var(--dk); transition:all .18s; }
+.tipo-btn:hover { border-color:#bbb; background:var(--lt); }
+.tipo-btn.sel { border-color:var(--y); background:var(--y); color:var(--dk); }
+.tipo-btn .tipo-icon { font-size:1.8rem; display:block; margin-bottom:.35rem; }
+.tipo-desc { display:block; font-size:.73rem; font-weight:400; margin-top:.3rem; opacity:.7; }
+.modal-fornecedor { text-align:left; margin-bottom:1.2rem; }
+.modal-fornecedor label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.4rem; }
+.modal-fornecedor input { width:100%; border:1.5px solid var(--br); border-radius:7px; padding:8px 11px; font-size:13px; outline:none; box-sizing:border-box; }
+.modal-fornecedor input:focus { border-color:#aaa; }
+.tipo-badge { display:inline-block; padding:.15rem .55rem; border-radius:20px; font-size:.75rem; font-weight:700; margin-left:.4rem; }
+.tipo-badge.prototipo { background:#FFF3CD; color:#856404; }
+.tipo-badge.massivo   { background:#D1E7DD; color:#0A3622; }
+
 </style>
 <!-- Validation toast -->
 <div class="val-toast" id="valToast">
@@ -167,6 +187,32 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
+<div id="modal-tipo">
+  <div class="modal-box">
+    <h2 data-i18n="modalTipoTitle">Tipo de Avaliação</h2>
+    <p data-i18n="modalTipoDesc">Selecione antes de iniciar a inspeção</p>
+    <div class="tipo-btns">
+      <button class="tipo-btn" id="btn-tipo-proto" onclick="setTipo('prototipo')">
+        <span class="tipo-icon">🧪</span>
+        <span data-i18n="tipoProto">Protótipo</span>
+        <span class="tipo-desc" data-i18n="tipoProtoDesc">Novo equipamento de um novo fornecedor</span>
+      </button>
+      <button class="tipo-btn" id="btn-tipo-mass" onclick="setTipo('massivo')">
+        <span class="tipo-icon">📦</span>
+        <span data-i18n="tipoMass">Entrega Massiva</span>
+        <span class="tipo-desc" data-i18n="tipoMassDesc">Entrega de lote de unidades com um fornecedor já homologado</span>
+      </button>
+    </div>
+    <div class="modal-fornecedor">
+      <label data-i18n="fornecedorLabel">Nome do Fornecedor <span style="font-weight:400;color:#888">(opcional)</span></label>
+      <input type="text" id="fornecedor-input" data-i18n-ph="fornecedorPh" placeholder="Ex: Empresa XYZ Ltda">
+    </div>
+    <button id="btn-iniciar" disabled onclick="iniciarAvaliacao()" data-i18n="iniciarAval">Iniciar Avaliação</button>
+  </div>
+</div>
+
+
 
 <header>
   <div class="logo">
@@ -279,6 +325,37 @@
 
 <script>
 
+// ── Tipo de Avaliação ──
+let tipoAvaliacao = null;
+let fornecedorNome = '';
+const NOTA_CORTE_PROTOTIPO = 95;
+
+function setTipo(tipo) {
+  tipoAvaliacao = tipo;
+  document.getElementById('btn-tipo-proto').classList.toggle('sel', tipo === 'prototipo');
+  document.getElementById('btn-tipo-mass').classList.toggle('sel', tipo === 'massivo');
+  document.getElementById('btn-iniciar').disabled = false;
+}
+
+function iniciarAvaliacao() {
+  fornecedorNome = (document.getElementById('fornecedor-input').value || '').trim();
+  document.getElementById('modal-tipo').style.display = 'none';
+  const badge = document.createElement('span');
+  badge.className = 'tipo-badge ' + tipoAvaliacao;
+  const t = T[LANG];
+  badge.textContent = tipoAvaliacao === 'prototipo' ? t.tipoProto : t.tipoMass;
+  const sub = document.querySelector('.hdr-sub');
+  if (sub) { sub.innerHTML = ''; sub.appendChild(badge); }
+  if (fornecedorNome) {
+    const fSpan = document.createElement('span');
+    fSpan.style.cssText = 'font-size:.75rem;color:#999;margin-left:.5rem;';
+    fSpan.textContent = fornecedorNome;
+    sub.appendChild(fSpan);
+  }
+}
+
+
+
 // ── Supabase ──
 let _sb = null;
 try { _sb = supabase.createClient('https://amdaounmybtrcpkqfcgx.supabase.co', 'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C'); }
@@ -311,7 +388,14 @@ const T = {
     herramienta:'Herramienta', comentarios:'Comentarios',
     obsPlaceholder:'Observaciones...', fotos:'Fotos',
     addMedia:'Agregar fotos o videos', refLabel:'Referencia del patrón',
-    verdicts:{ rep:'Reprobado', aj:'Ajustes', ap:'Aprobado' }
+    verdicts:{ rep:'Reprobado', aj:'Ajustes', ap:'Aprobado' 
+    tipoProto:'Prototipo', tipoMass:'Entrega Masiva',
+    fornecedorLabel:'Nombre del Proveedor', fornecedorPh:'Ej: Empresa XYZ Ltda',
+    iniciarAval:'Iniciar Evaluación',
+    tipoProtoDesc:'Nuevo equipamiento de un nuevo proveedor',
+    tipoMassDesc:'Entrega de lote de unidades con un proveedor ya homologado',
+    modalTipoTitle:'Tipo de Evaluación', modalTipoDesc:'Seleccione antes de iniciar la inspección',
+  }
   },
   pt: {
     title:'Checklist Carro Tolva', subtitle:'Avaliação de Equipamentos',
@@ -330,7 +414,14 @@ const T = {
     herramienta:'Ferramenta', comentarios:'Comentários',
     obsPlaceholder:'Observações...', fotos:'Fotos',
     addMedia:'Adicionar fotos ou vídeos', refLabel:'Referência do padrão',
-    verdicts:{ rep:'Reprovado', aj:'Ajustes', ap:'Aprovado' }
+    verdicts:{ rep:'Reprovado', aj:'Ajustes', ap:'Aprovado' 
+    tipoProto:'Protótipo', tipoMass:'Entrega Massiva',
+    fornecedorLabel:'Nome do Fornecedor', fornecedorPh:'Ex: Empresa XYZ Ltda',
+    iniciarAval:'Iniciar Avaliação',
+    tipoProtoDesc:'Novo equipamento de um novo fornecedor',
+    tipoMassDesc:'Entrega de lote de unidades com um fornecedor já homologado',
+    modalTipoTitle:'Tipo de Avaliação', modalTipoDesc:'Selecione antes de iniciar a inspeção',
+  }
   }
 };
 
@@ -778,6 +869,8 @@ async function finalize() {
     ratings: { eq: R.eq, es: R.es, pi: R.pi },
     comentarios: comentarios,
     fotos: [],
+    tipo_avaliacao: tipoAvaliacao,
+    fornecedor: fornecedorNome || null,
     equipo_tipo: 'Carro Tolva'
   };
 
