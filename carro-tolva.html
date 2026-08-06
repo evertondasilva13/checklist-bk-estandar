@@ -193,12 +193,12 @@
     <h2 data-i18n="modalTipoTitle">Tipo de Avaliação</h2>
     <p data-i18n="modalTipoDesc">Selecione antes de iniciar a inspeção</p>
     <div class="tipo-btns">
-      <button class="tipo-btn" id="btn-tipo-proto" onclick="setTipo('prototipo')">
+      <button class="tipo-btn" id="btn-tipo-proto">
         <span class="tipo-icon">🧪</span>
         <span data-i18n="tipoProto">Protótipo</span>
         <span class="tipo-desc" data-i18n="tipoProtoDesc">Novo equipamento de um novo fornecedor</span>
       </button>
-      <button class="tipo-btn" id="btn-tipo-mass" onclick="setTipo('massivo')">
+      <button class="tipo-btn" id="btn-tipo-mass">
         <span class="tipo-icon">📦</span>
         <span data-i18n="tipoMass">Entrega Massiva</span>
         <span class="tipo-desc" data-i18n="tipoMassDesc">Entrega de lote de unidades com um fornecedor já homologado</span>
@@ -208,7 +208,7 @@
       <label data-i18n="fornecedorLabel">Nome do Fornecedor <span style="font-weight:400;color:#888">(opcional)</span></label>
       <input type="text" id="fornecedor-input" data-i18n-ph="fornecedorPh" placeholder="Ex: Empresa XYZ Ltda">
     </div>
-    <button id="btn-iniciar" disabled onclick="iniciarAvaliacao()" data-i18n="iniciarAval">Iniciar Avaliação</button>
+    <button id="btn-iniciar" disabled data-i18n="iniciarAval">Iniciar Avaliação</button>
   </div>
 </div>
 
@@ -610,6 +610,14 @@ function buildItem(item, sec, idx) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Tipo modal buttons
+  const btnProto = document.getElementById('btn-tipo-proto');
+  const btnMass  = document.getElementById('btn-tipo-mass');
+  const btnIni   = document.getElementById('btn-iniciar');
+  if (btnProto) btnProto.addEventListener('click', function() { setTipo('prototipo'); });
+  if (btnMass)  btnMass.addEventListener('click',  function() { setTipo('massivo'); });
+  if (btnIni)   btnIni.addEventListener('click',   function() { iniciarAvaliacao(); });
+
   Object.entries(ITEMS).forEach(([sec, items]) => {
     const bd = document.getElementById('bd-'+sec);
     if (bd) bd.innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
