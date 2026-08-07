@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard de Recebimento e Aprovações — Mercado Libre</title>
+<title>Dashboard de Aprovações MTM — Mercado Libre</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -168,8 +168,8 @@
   <div class="logo">
     <div class="logo-icon">ML</div>
     <div>
-      <div class="logo-text">Dashboard de Recebimento e Aprovações</div>
-      <div class="logo-sub">Protótipos e Equipamentos Estándar</div>
+      <div class="logo-text">Dashboard de Aprovações MTM</div>
+      <div class="logo-sub">Protótipos e Equipamentos — MTM PD Transportes</div>
     </div>
   </div>
   <div class="hdr-right">
@@ -276,6 +276,10 @@
     <button class="etab" id="tabTolva" onclick="setTab('Tolva')">
       <span class="etab-label">Tolva</span>
       <span class="etab-count" id="cntTolva">0</span>
+    </button>
+    <button class="etab" id="tabEscal" onclick="setTab('Escalera Pallet High')">
+      <span class="etab-label">Escalera Pallet</span>
+      <span class="etab-count" id="cntEscal">0</span>
     </button>
   </div>
 
@@ -426,7 +430,8 @@ function setTab(tipo) {
   document.getElementById('tabBand').className  = 'etab' + (tipo==='Bandeja Aramada BK'       ? ' act-band'  : '');
   document.getElementById('tabTest').className  = 'etab' + (tipo==='Testeira RSC'             ? ' act-test'  : '');
   document.getElementById('tabBrsc').className  = 'etab' + (tipo==='Bandeja RSC'              ? ' act-brsc'  : '');
-  document.getElementById('tabTolva').className = 'etab' + (tipo==='Tolva'              ? ' act-tolva' : '');
+  document.getElementById('tabTolva').className = 'etab' + (tipo==='Tolva'                 ? ' act-tolva' : '');
+  document.getElementById('tabEscal').className = 'etab' + (tipo==='Escalera Pallet High' ? ' act-tolva' : '');
   document.getElementById('tabProto').className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
   document.getElementById('tabMass').className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
   applyFilters();
@@ -461,6 +466,7 @@ function updateTabCounts() {
   document.getElementById('cntTest').textContent  = cntFor('Testeira RSC');
   document.getElementById('cntBrsc').textContent  = cntFor('Bandeja RSC');
   document.getElementById('cntTolva').textContent = cntFor('Tolva');
+  document.getElementById('cntEscal').textContent = cntFor('Escalera Pallet High');
 }
 
 function applyFilters() {
