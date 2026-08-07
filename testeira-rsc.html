@@ -192,6 +192,10 @@
  <label data-i18n="fornecedorLabel">Nombre del Proveedor <span style="font-weight:400;color:#888">(opcional)</span></label>
  <input type="text" id="fornecedor-input" data-i18n-ph="fornecedorPh" placeholder="Ej: Empresa XYZ Ltda">
  </div>
+ <div class="modal-fornecedor">
+ <label data-i18n="emailFornecedorLabel">E-mail del Proveedor <span style="font-weight:400;color:#888">(opcional)</span></label>
+ <input type="email" id="email-fornecedor-input" data-i18n-ph="emailFornecedorPh" placeholder="Ej: contacto@proveedor.com">
+ </div>
  <button id="btn-iniciar" disabled onclick="iniciarAvaliacao()" data-i18n="iniciarAval">Iniciar Evaluación</button>
  </div>
 </div>
@@ -269,6 +273,7 @@
 <script>
 let tipoAvaliacao = null;
 let fornecedorNome = '';
+let emailFornecedor = '';
 const NOTA_CORTE_PROTOTIPO = 95;
 
 function setTipo(tipo) {
@@ -279,6 +284,7 @@ function setTipo(tipo) {
 }
 function iniciarAvaliacao() {
  fornecedorNome = (document.getElementById('fornecedor-input').value || '').trim();
+ emailFornecedor = (document.getElementById('email-fornecedor-input').value || '').trim();
  document.getElementById('modal-tipo').style.display = 'none';
 }
 
@@ -316,6 +322,7 @@ const T = {
  modalTipoTitle:'Tipo de Evaluación', modalTipoDesc:'Seleccione antes de iniciar la inspección',
  tipoProto:'Prototipo', tipoMass:'Entrega Masiva',
  fornecedorLabel:'Nombre del Proveedor', fornecedorPh:'Ej: Empresa XYZ Ltda',
+ emailFornecedorLabel:'E-mail del Proveedor', emailFornecedorPh:'Ej: contacto@proveedor.com',
  iniciarAval:'Iniciar Evaluación',
  tipoProtoDesc:'Nuevo equipamiento de un nuevo proveedor',
  tipoMassDesc:'Entrega de lote de unidades con un proveedor ya homologado'
@@ -340,6 +347,7 @@ const T = {
  modalTipoTitle:'Tipo de Avaliação', modalTipoDesc:'Selecione antes de iniciar a inspeção',
  tipoProto:'Protótipo', tipoMass:'Entrega Massiva',
  fornecedorLabel:'Nome do Fornecedor', fornecedorPh:'Ex: Empresa XYZ Ltda',
+ emailFornecedorLabel:'E-mail do Fornecedor', emailFornecedorPh:'Ex: contato@fornecedor.com',
  iniciarAval:'Iniciar Avaliação',
  tipoProtoDesc:'Novo equipamento de um novo fornecedor',
  tipoMassDesc:'Entrega de lote de unidades com um fornecedor já homologado'
@@ -606,7 +614,8 @@ async function finalize() {
  comentarios, fotos: [],
  equipo_tipo: 'Testeira RSC',
  tipo_avaliacao: tipoAvaliacao,
- fornecedor: fornecedorNome || null
+ fornecedor: fornecedorNome || null,
+ email_fornecedor: emailFornecedor || null
  };
 
  const btn = document.querySelector('[data-i18n="finalizar"]');
