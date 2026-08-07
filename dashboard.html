@@ -432,8 +432,8 @@ function setTab(tipo) {
   document.getElementById('tabBrsc').className  = 'etab' + (tipo==='Bandeja RSC'              ? ' act-brsc'  : '');
   document.getElementById('tabTolva').className = 'etab' + (tipo==='Carro Tolva'                 ? ' act-tolva' : '');
   document.getElementById('tabEscal').className = 'etab' + (tipo==='Escalera Pallet High' ? ' act-tolva' : '');
-  document.getElementById('tabProto').className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
-  document.getElementById('tabMass').className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
+  const elProto = document.getElementById('tabProto'); if (elProto) elProto.className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
+  const elMass  = document.getElementById('tabMass');  if (elMass)  elMass.className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
   applyFilters();
 }
 
