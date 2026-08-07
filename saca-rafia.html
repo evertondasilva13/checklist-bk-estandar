@@ -1130,10 +1130,12 @@ async function finalize() {
     }, 1200);
   } catch(err) {
     console.error(err);
-    btn.textContent = LANG==='pt'?'Erro ao enviar':'Error al enviar';
+    const errMsg = err?.message || err?.details || err?.hint || JSON.stringify(err);
+    btn.textContent = (LANG==='pt'?'Erro: ':'Error: ') + errMsg;
     btn.style.background = 'var(--bad)';
+    btn.style.fontSize = '11px';
     btn.disabled = false;
-    setTimeout(() => { btn.textContent=originalText; btn.style.background=''; }, 3000);
+    setTimeout(() => { btn.textContent=originalText; btn.style.background=''; btn.style.fontSize=''; }, 6000);
   }
 }
 
