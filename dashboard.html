@@ -281,6 +281,10 @@
       <span class="etab-label">Escalera Pallet</span>
       <span class="etab-count" id="cntEscal">0</span>
     </button>
+    <button class="etab" id="tabSaca" onclick="setTab('Saca de Ráfia')">
+      <span class="etab-label">Saca de Ráfia</span>
+      <span class="etab-count" id="cntSaca">0</span>
+    </button>
   </div>
 
   <!-- Filters -->
@@ -432,6 +436,7 @@ function setTab(tipo) {
   document.getElementById('tabBrsc').className  = 'etab' + (tipo==='Bandeja RSC'              ? ' act-brsc'  : '');
   document.getElementById('tabTolva').className = 'etab' + (tipo==='Carro Tolva'                 ? ' act-tolva' : '');
   document.getElementById('tabEscal').className = 'etab' + (tipo==='Escalera Pallet High' ? ' act-tolva' : '');
+  const elSaca  = document.getElementById('tabSaca');  if (elSaca)  elSaca.className  = 'etab' + (tipo==='Saca de Ráfia'        ? ' act-tolva' : '');
   const elProto = document.getElementById('tabProto'); if (elProto) elProto.className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
   const elMass  = document.getElementById('tabMass');  if (elMass)  elMass.className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
   applyFilters();
@@ -467,6 +472,7 @@ function updateTabCounts() {
   document.getElementById('cntBrsc').textContent  = cntFor('Bandeja RSC');
   document.getElementById('cntTolva').textContent = cntFor('Carro Tolva');
   document.getElementById('cntEscal').textContent = cntFor('Escalera Pallet High');
+  document.getElementById('cntSaca').textContent  = cntFor('Saca de Ráfia');
 }
 
 function applyFilters() {
