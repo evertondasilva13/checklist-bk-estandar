@@ -273,7 +273,7 @@
       <span class="etab-label">Bandeja RSC</span>
       <span class="etab-count" id="cntBrsc">0</span>
     </button>
-    <button class="etab" id="tabTolva" onclick="setTab('Tolva')">
+    <button class="etab" id="tabTolva" onclick="setTab('Carro Tolva')">
       <span class="etab-label">Tolva</span>
       <span class="etab-count" id="cntTolva">0</span>
     </button>
@@ -430,7 +430,7 @@ function setTab(tipo) {
   document.getElementById('tabBand').className  = 'etab' + (tipo==='Bandeja Aramada BK'       ? ' act-band'  : '');
   document.getElementById('tabTest').className  = 'etab' + (tipo==='Testeira RSC'             ? ' act-test'  : '');
   document.getElementById('tabBrsc').className  = 'etab' + (tipo==='Bandeja RSC'              ? ' act-brsc'  : '');
-  document.getElementById('tabTolva').className = 'etab' + (tipo==='Tolva'                 ? ' act-tolva' : '');
+  document.getElementById('tabTolva').className = 'etab' + (tipo==='Carro Tolva'                 ? ' act-tolva' : '');
   document.getElementById('tabEscal').className = 'etab' + (tipo==='Escalera Pallet High' ? ' act-tolva' : '');
   document.getElementById('tabProto').className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
   document.getElementById('tabMass').className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
@@ -465,7 +465,7 @@ function updateTabCounts() {
   document.getElementById('cntBand').textContent  = cntFor('Bandeja Aramada BK');
   document.getElementById('cntTest').textContent  = cntFor('Testeira RSC');
   document.getElementById('cntBrsc').textContent  = cntFor('Bandeja RSC');
-  document.getElementById('cntTolva').textContent = cntFor('Tolva');
+  document.getElementById('cntTolva').textContent = cntFor('Carro Tolva');
   document.getElementById('cntEscal').textContent = cntFor('Escalera Pallet High');
 }
 
