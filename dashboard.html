@@ -587,7 +587,7 @@ function renderTable(rows) {
         ${rows.map(r => {
           const nFotos = (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0;
           const com = (typeof r.comentarios === 'object' && r.comentarios) ? r.comentarios : (typeof r.comentarios === 'string' ? JSON.parse(r.comentarios||'{}') : {});
-          const hasDetails = Object.keys(com).filter(k => k !== '_dimensoes').length > 0 || com._dimensoes;
+          const hasDetails = com._items || com._dimensoes || Object.keys(com).filter(k => k !== '_dimensoes' && k !== '_items').length > 0;
           return `
           <tr>
             <td>${r.fecha || '—'}</td>
@@ -690,20 +690,44 @@ function closeFotoModal() {
 
 function openDetalhesModal(com) {
   const dimLabels = {
-    alca_comp:'Comprimento alça', alca_larg:'Largura alça', alca_alt:'Altura total', alca_larg2:'Largura total',
+    alca_comp:'Comprimento (alça)', alca_larg:'Largura (alça)', alca_alt:'Altura total', alca_larg2:'Largura total',
     saca_larg:'Largura (quadrado)', saca_alt:'Altura (quadrado)', saca_comp:'Comprimento saca', saca_larg2:'Largura total saca'
+  };
+  const ratingMeta = {
+    0:   { label:'Ruim',   color:'#E8303F', bg:'#fff0f1' },
+    0.5: { label:'Interm.',color:'#FF7733', bg:'#fff5ee' },
+    1:   { label:'Excel.', color:'#00A650', bg:'#edfff5' },
   };
   let html = '';
 
-  // Comentários por item
-  const commentKeys = Object.keys(com).filter(k => k !== '_dimensoes');
-  if (commentKeys.length > 0) {
-    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Comentários por item</div>';
+  // Itens avaliados (título + nota + comentário)
+  if (com._items && Object.keys(com._items).length > 0) {
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Itens avaliados</div>';
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">';
-    commentKeys.forEach(k => {
-      html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="color:#999;padding:6px 0;width:30%;font-size:12px;">Item ${parseInt(k)+1}</td><td style="padding:6px 0;">${com[k]}</td></tr>`;
+    Object.entries(com._items).sort((a,b) => parseInt(a[0])-parseInt(b[0])).forEach(([n, item]) => {
+      const m = ratingMeta[item.rating] || ratingMeta[0];
+      const notaBadge = `<span style="background:${m.bg};color:${m.color};font-weight:700;font-size:11px;padding:2px 8px;border-radius:8px;border:1px solid ${m.color};">${m.label}</span>`;
+      html += `<tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:8px 0;width:40%;vertical-align:top;">
+          <div style="font-size:11px;color:#999;">Item ${n}</div>
+          <div style="font-weight:600;font-size:12px;">${item.title}</div>
+        </td>
+        <td style="padding:8px 4px;width:20%;vertical-align:top;">${notaBadge}</td>
+        <td style="padding:8px 0;color:#555;font-size:12px;vertical-align:top;">${item.comment || '<span style="color:#ccc">—</span>'}</td>
+      </tr>`;
     });
     html += '</table>';
+  } else {
+    // Fallback para registros antigos sem _items
+    const commentKeys = Object.keys(com).filter(k => k !== '_dimensoes' && k !== '_items');
+    if (commentKeys.length > 0) {
+      html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Comentários por item</div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">';
+      commentKeys.forEach(k => {
+        html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="color:#999;padding:6px 0;width:30%;font-size:12px;">Item ${parseInt(k)+1}</td><td style="padding:6px 0;">${com[k]}</td></tr>`;
+      });
+      html += '</table>';
+    }
   }
 
   // Dimensões medidas
