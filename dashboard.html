@@ -581,11 +581,13 @@ function renderTable(rows) {
     <table>
       <thead><tr>
         <th>Fecha</th><th>Evaluador</th><th>Sitio</th><th>País</th><th>Tipo</th><th>Fornecedor</th>
-        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th>Fotos</th><th></th>
+        <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th>Fotos</th><th>Detalhes</th><th></th>
       </tr></thead>
       <tbody>
         ${rows.map(r => {
           const nFotos = (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0;
+          const com = (typeof r.comentarios === 'object' && r.comentarios) ? r.comentarios : (typeof r.comentarios === 'string' ? JSON.parse(r.comentarios||'{}') : {});
+          const hasDetails = Object.keys(com).filter(k => k !== '_dimensoes').length > 0 || com._dimensoes;
           return `
           <tr>
             <td>${r.fecha || '—'}</td>
@@ -605,6 +607,10 @@ function renderTable(rows) {
             <td><span class="verdict-chip ${vClass(r.veredicto)}">${r.veredicto || '—'}</span></td>
             <td>${nFotos > 0
               ? `<button class="foto-btn" onclick='openFotoModal(${JSON.stringify(r.fotos)}, "${r.sitio||''}", "${r.fecha||''}")'>📷 ${nFotos}</button>`
+              : '<span style="color:#ccc;font-size:12px">—</span>'
+            }</td>
+            <td>${hasDetails
+              ? `<button class="foto-btn" style="background:#1a3a8f;" onclick='openDetalhesModal(${JSON.stringify(com)})'>📋</button>`
               : '<span style="color:#ccc;font-size:12px">—</span>'
             }</td>
             <td><button class="del-btn" onclick="openDeleteModal('${r.id}')">🗑</button></td>
@@ -681,6 +687,45 @@ function openFotoModal(fotosJson, sitio, fecha) {
 function closeFotoModal() {
   document.getElementById('fotoModal').classList.remove('open');
 }
+
+function openDetalhesModal(com) {
+  const dimLabels = {
+    alca_comp:'Comprimento alça', alca_larg:'Largura alça', alca_alt:'Altura total', alca_larg2:'Largura total',
+    saca_larg:'Largura (quadrado)', saca_alt:'Altura (quadrado)', saca_comp:'Comprimento saca', saca_larg2:'Largura total saca'
+  };
+  let html = '';
+
+  // Comentários por item
+  const commentKeys = Object.keys(com).filter(k => k !== '_dimensoes');
+  if (commentKeys.length > 0) {
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Comentários por item</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">';
+    commentKeys.forEach(k => {
+      html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="color:#999;padding:6px 0;width:30%;font-size:12px;">Item ${parseInt(k)+1}</td><td style="padding:6px 0;">${com[k]}</td></tr>`;
+    });
+    html += '</table>';
+  }
+
+  // Dimensões medidas
+  if (com._dimensoes && Object.keys(com._dimensoes).length > 0) {
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Medições registradas</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+    Object.entries(com._dimensoes).forEach(([k, v]) => {
+      const label = dimLabels[k] || k;
+      html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="color:#999;padding:6px 0;width:55%;">${label}</td><td style="font-weight:bold;padding:6px 0;">${v} mm</td></tr>`;
+    });
+    html += '</table>';
+  }
+
+  if (!html) html = '<p style="color:#999;font-size:13px;">Nenhum detalhe registrado.</p>';
+  document.getElementById('detContent').innerHTML = html;
+  document.getElementById('detModal').classList.add('open');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('detModal')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('detModal')) document.getElementById('detModal').classList.remove('open');
+  });
+});
 // (listener fotoModal movido para DOMContentLoaded)
 
 const ADMIN_PASS = 'BK2026';
@@ -797,6 +842,17 @@ function exportCSV() {
       <button class="foto-modal-close" onclick="closeFotoModal()">×</button>
     </div>
     <div class="foto-grid" id="fotoGrid"></div>
+  </div>
+</div>
+
+<!-- Modal de Detalhes (comentários + dimensões) -->
+<div class="foto-modal-overlay" id="detModal">
+  <div class="foto-modal">
+    <div class="foto-modal-hdr">
+      <div class="foto-modal-title">📋 Comentários e Medições</div>
+      <button class="foto-modal-close" onclick="document.getElementById('detModal').classList.remove('open')">×</button>
+    </div>
+    <div id="detContent"></div>
   </div>
 </div>
 
