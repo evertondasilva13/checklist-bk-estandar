@@ -1007,6 +1007,19 @@ async function finalize() {
     if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
   });
 
+  // Collect item details (title + rating + comment) for all rated items
+  const ITEMS_NOW = LANG === 'pt' ? ITEMS_PT : ITEMS_ES;
+  const itemsData = {};
+  ITEMS_NOW.eq.forEach((item, i) => {
+    const val = R.eq[i];
+    if (val !== null) itemsData[item.n] = { title: item.t, rating: val, comment: comentarios[i] || null };
+  });
+  ITEMS_NOW.es.forEach((item, i) => {
+    const val = R.es[i];
+    if (val !== null) itemsData[item.n] = { title: item.t, rating: val, comment: comentarios[i + 4] || null };
+  });
+  if (Object.keys(itemsData).length > 0) comentarios['_items'] = itemsData;
+
   // Collect dimension measurements (item 4 - Alça, item 5 - Dimensões Gerais)
   const dimData = {};
   const alcaChecker = document.querySelector('.alca-checker');
