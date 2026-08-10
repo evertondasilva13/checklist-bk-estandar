@@ -1007,6 +1007,22 @@ async function finalize() {
     if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
   });
 
+  // Collect dimension measurements (item 4 - Alça, item 5 - Dimensões Gerais)
+  const dimData = {};
+  const alcaChecker = document.querySelector('.alca-checker');
+  if (alcaChecker) {
+    alcaChecker.querySelectorAll('.dim-inp').forEach(inp => {
+      if (inp.value.trim()) dimData['alca_' + inp.dataset.key] = parseFloat(inp.value);
+    });
+  }
+  const dimChecker = document.querySelector('.dim-checker');
+  if (dimChecker) {
+    dimChecker.querySelectorAll('.dim-inp').forEach(inp => {
+      if (inp.value.trim()) dimData['saca_' + inp.dataset.key] = parseFloat(inp.value);
+    });
+  }
+  if (Object.keys(dimData).length > 0) comentarios['_dimensoes'] = dimData;
+
   // Validate: all rated items need at least one photo
   const allItems = document.querySelectorAll('.item');
   const secDefs = [{key:'eq',offset:0},{key:'es',offset:4}];
