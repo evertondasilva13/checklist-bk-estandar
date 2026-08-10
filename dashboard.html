@@ -67,6 +67,7 @@
   .filter-field select:focus, .filter-field input:focus { border-color: var(--dk); }
   .filter-clear { background: transparent; border: 1.5px solid var(--br); color: var(--g); padding: 6px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; margin-top: 18px; }
   .filter-clear:hover { border-color: var(--dk); color: var(--dk); }
+  .pais-badge { display:none; background:var(--dk); color:var(--y); padding:4px 12px; border-radius:12px; font-size:12px; font-weight:700; margin-left:auto; }
 
   /* Equipment Tabs */
   .tipo-selector { display:flex; gap:10px; margin-bottom:14px; }
@@ -330,6 +331,7 @@
       <input type="date" id="fHasta" onchange="applyFilters()">
     </div>
     <button class="filter-clear" onclick="clearFilters()">Limpiar</button>
+    <span class="pais-badge" id="pais-badge"></span>
   </div>
 
   <!-- Table -->
@@ -450,25 +452,18 @@ function setTab(tipo) {
   applyFilters();
 }
 
-function updateTabCounts() {
-  const std  = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'BK Estándar').length;
-  const frag = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'BK Fragiles').length;
-  const diab = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'Diablito de Elevación').length;
-  document.getElementById('cntStd').textContent  = std;
-  document.getElementById('cntFrag').textContent = frag;
-  const palet = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'Paletão Linha Branca').length;
-  const flow  = ALL_DATA.filter(r => (r.equipo_tipo||'BK Estándar') === 'Flowrack 3x2m').length;
-  document.getElementById('cntDiab').textContent  = diab;
-  document.getElementById('cntPalet').textContent = palet;
-  document.getElementById('cntFlow').textContent  = flow;
-  // Update tipo selector counts
-  const tBase = ACTIVE_TIPO === 'todos' ? ALL_DATA :
-                ACTIVE_TIPO === 'prototipo' ? ALL_DATA.filter(r => r.tipo_avaliacao === 'prototipo') :
-                ALL_DATA.filter(r => r.tipo_avaliacao === 'massivo');
-  document.getElementById('ts-cnt-todos').textContent = ALL_DATA.length + ' avaliações';
-  document.getElementById('ts-cnt-proto').textContent = ALL_DATA.filter(r => r.tipo_avaliacao === 'prototipo').length + ' avaliações';
-  document.getElementById('ts-cnt-mass').textContent  = ALL_DATA.filter(r => r.tipo_avaliacao === 'massivo').length + ' avaliações';
-  // Update equipo-tab counts using tipo filter
+function updateTabCounts(paisFilter) {
+  // Respect the country filter for tab/tipo counts
+  const pFilter = paisFilter !== undefined ? paisFilter : (document.getElementById('fPais')?.value || '');
+  const base = pFilter ? ALL_DATA.filter(r => r.pais === pFilter) : ALL_DATA;
+  // Tipo selector counts
+  const tBase = ACTIVE_TIPO === 'todos' ? base :
+                ACTIVE_TIPO === 'prototipo' ? base.filter(r => r.tipo_avaliacao === 'prototipo') :
+                base.filter(r => r.tipo_avaliacao === 'massivo');
+  document.getElementById('ts-cnt-todos').textContent = base.length + ' avaliações';
+  document.getElementById('ts-cnt-proto').textContent = base.filter(r => r.tipo_avaliacao === 'prototipo').length + ' avaliações';
+  document.getElementById('ts-cnt-mass').textContent  = base.filter(r => r.tipo_avaliacao === 'massivo').length + ' avaliações';
+  // Equipment tab counts
   const cntFor = eq => tBase.filter(r => (r.equipo_tipo||'BK Estándar') === eq).length;
   document.getElementById('cntStd').textContent   = cntFor('BK Estándar');
   document.getElementById('cntFrag').textContent  = cntFor('BK Fragiles');
@@ -485,16 +480,24 @@ function updateTabCounts() {
 }
 
 function applyFilters() {
-  let rows = ALL_DATA.filter(r => (r.equipo_tipo || 'BK Estándar') === ACTIVE_TAB);
-  if (ACTIVE_TIPO === 'prototipo') rows = rows.filter(r => r.tipo_avaliacao === 'prototipo');
-  else if (ACTIVE_TIPO === 'massivo') rows = rows.filter(r => r.tipo_avaliacao === 'massivo');
-  const sitio   = document.getElementById('fSitio').value;
   const pais    = document.getElementById('fPais').value;
+  const sitio   = document.getElementById('fSitio').value;
   const verdict = document.getElementById('fVerdict').value;
   const desde   = document.getElementById('fDesde').value;
   const hasta   = document.getElementById('fHasta').value;
-  if (sitio)   rows = rows.filter(r => r.sitio === sitio);
+
+  // Update tab counts respecting country filter
+  updateTabCounts(pais);
+
+  // Show/hide country badge
+  const badge = document.getElementById('pais-badge');
+  if (badge) { badge.textContent = pais ? '🌍 ' + pais : ''; badge.style.display = pais ? 'inline-block' : 'none'; }
+
+  let rows = ALL_DATA.filter(r => (r.equipo_tipo || 'BK Estándar') === ACTIVE_TAB);
+  if (ACTIVE_TIPO === 'prototipo') rows = rows.filter(r => r.tipo_avaliacao === 'prototipo');
+  else if (ACTIVE_TIPO === 'massivo') rows = rows.filter(r => r.tipo_avaliacao === 'massivo');
   if (pais)    rows = rows.filter(r => r.pais === pais);
+  if (sitio)   rows = rows.filter(r => r.sitio === sitio);
   if (verdict) rows = rows.filter(r => r.veredicto === verdict);
   if (desde)   rows = rows.filter(r => r.fecha >= desde);
   if (hasta)   rows = rows.filter(r => r.fecha <= hasta);
