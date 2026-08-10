@@ -200,6 +200,13 @@
   .tipo-badge { display:inline-block; padding:2px 10px; border-radius:10px; font-size:.75rem; font-weight:700; }
   .tipo-badge.prototipo { background:#E8F4FD; color:#1565C0; }
   .tipo-badge.massivo { background:#F3E5F5; color:#6A1B9A; }
+
+  /* ── Supplier Banner ── */
+  #supplier-banner { display:none; background:#1A1A1A; color:#FFE600; padding:9px 20px; font-size:13px; font-weight:700; position:sticky; top:58px; z-index:90; gap:14px; align-items:center; flex-wrap:wrap; border-bottom:3px solid #FFE600; }
+  #supplier-banner.visible { display:flex; }
+  #supplier-banner .sb-chip { background:#FFE600; color:#1A1A1A; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:800; }
+  #supplier-banner .sb-sep { opacity:.4; margin:0 2px; }
+  #supplier-banner .sb-email { opacity:.75; font-size:12px; font-weight:400; }
 </style>
 </head>
 <body>
@@ -221,11 +228,11 @@
       </button>
     </div>
     <div class="modal-fornecedor">
-      <label data-i18n="fornecedorLabel">Nome do Fornecedor <span style="font-weight:400;color:#888">(opcional)</span></label>
-      <input type="text" id="input-fornecedor" data-i18n-ph="fornecedorPh" placeholder="Ex: Empresa XYZ Ltda">
+      <label data-i18n="fornecedorLabel">Nome do Fornecedor <span style="color:#E8303F;font-weight:700;">*</span></label>
+      <input type="text" id="input-fornecedor" data-i18n-ph="fornecedorPh" placeholder="Ex: Empresa XYZ Ltda (obrigatório)">
     </div>
     <div class="modal-fornecedor">
-      <label data-i18n="emailFornecedorLabel">E-mail do Fornecedor <span style="font-weight:400;color:#888">(opcional)</span></label>
+      <label data-i18n="emailFornecedorLabel">E-mail do Fornecedor <span style="color:#E8303F;font-weight:700;">*</span></label>
       <input type="email" id="email-fornecedor-input" data-i18n-ph="emailFornecedorPh" placeholder="Ex: contato@fornecedor.com">
     </div>
     <button id="btn-iniciar" disabled onclick="iniciarAvaliacao()" data-i18n="iniciarAval">Iniciar Avaliação</button>
@@ -347,22 +354,26 @@ function setTipo(tipo) {
 }
 
 function checkIniciar() {
+  const okTipo   = !!tipoAvaliacao;
+  const okFornec = (document.getElementById('input-fornecedor')?.value||'').trim().length > 0;
+  const okEmail  = (document.getElementById('email-fornecedor-input')?.value||'').trim().length > 0;
   const btn = document.getElementById('btn-iniciar');
-  if (tipoAvaliacao) {
-    btn.classList.add('ready');
-    btn.disabled = false;
-  } else {
-    btn.classList.remove('ready');
-    btn.disabled = true;
-  }
+  btn.disabled = !(okTipo && okFornec && okEmail);
 }
 
 function iniciarAvaliacao() {
   const fornec = document.getElementById('input-fornecedor').value.trim();
-  if (!tipoAvaliacao || !fornec) return;
+  if (!tipoAvaliacao || !fornec) return; // email also validated by checkIniciar
   fornecedorNome = fornec;
   emailFornecedor = (document.getElementById('email-fornecedor-input').value || '').trim();
   document.getElementById('modal-tipo').style.display = 'none';
+  // Show supplier banner
+  const _sbTipo = tipoAvaliacao === 'prototipo' ? 'PROTÓTIPO' : 'MASSIVO';
+  document.getElementById('sbTipo').textContent = _sbTipo;
+  document.getElementById('sbFornec').textContent = fornecedorNome || '';
+  document.getElementById('sbEmail').textContent  = emailFornecedor || '';
+  document.getElementById('supplier-banner').classList.add('visible');
+
 }
 
 // ── i18n ──
