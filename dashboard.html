@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
 <style>
   :root {
     --y: #FFE600; --yd: #E6CF00; --dk: #1A1A1A;
@@ -285,6 +286,10 @@
       <span class="etab-label">Saca de Ráfia</span>
       <span class="etab-count" id="cntSaca">0</span>
     </button>
+    <button class="etab" id="tabPesca" onclick="setTab('Carro de Pesca')">
+      <span class="etab-label">Carro de Pesca</span>
+      <span class="etab-count" id="cntPesca">0</span>
+    </button>
   </div>
 
   <!-- Filters -->
@@ -364,6 +369,7 @@
         <a class="ck-item" href="carro-tolva.html" target="_blank">Tolva</a>
         <a class="ck-item" href="escalera-pallet-high.html" target="_blank">Escalera Pallet High</a>
         <a class="ck-item" href="saca-rafia.html" target="_blank">Saca de Ráfia</a>
+        <a class="ck-item" href="carro-pesca.html" target="_blank">Carro de Pesca</a>
       </div>
       <button class="ck-close" onclick="document.getElementById('modal-checklist').classList.remove('open')">Fechar</button>
     </div>
@@ -438,6 +444,7 @@ function setTab(tipo) {
   document.getElementById('tabTolva').className = 'etab' + (tipo==='Carro Tolva'                 ? ' act-tolva' : '');
   document.getElementById('tabEscal').className = 'etab' + (tipo==='Escalera Pallet High' ? ' act-tolva' : '');
   const elSaca  = document.getElementById('tabSaca');  if (elSaca)  elSaca.className  = 'etab' + (tipo==='Saca de Ráfia'        ? ' act-tolva' : '');
+  const elPesca = document.getElementById('tabPesca'); if (elPesca) elPesca.className = 'etab' + (tipo==='Carro de Pesca'        ? ' act-tolva' : '');
   const elProto = document.getElementById('tabProto'); if (elProto) elProto.className = 'etab etab-proto' + (tipo==='__prototipo__' ? ' act-proto' : '');
   const elMass  = document.getElementById('tabMass');  if (elMass)  elMass.className  = 'etab etab-mass'  + (tipo==='__massivo__'   ? ' act-mass'  : '');
   applyFilters();
@@ -474,6 +481,7 @@ function updateTabCounts() {
   document.getElementById('cntTolva').textContent = cntFor('Carro Tolva');
   document.getElementById('cntEscal').textContent = cntFor('Escalera Pallet High');
   document.getElementById('cntSaca').textContent  = cntFor('Saca de Ráfia');
+  document.getElementById('cntPesca').textContent = cntFor('Carro de Pesca');
 }
 
 function applyFilters() {
@@ -584,7 +592,7 @@ function renderTable(rows) {
         <th>Eq. Estándar</th><th>Estructura</th><th>Score Final</th><th>Veredicto</th><th>Fotos</th><th>Detalhes</th><th></th>
       </tr></thead>
       <tbody>
-        ${rows.map(r => {
+        ${rows.map((r, _ri) => {
           const nFotos = (r.fotos && Array.isArray(r.fotos)) ? r.fotos.length : 0;
           const com = (typeof r.comentarios === 'object' && r.comentarios) ? r.comentarios : (typeof r.comentarios === 'string' ? JSON.parse(r.comentarios||'{}') : {});
           const hasDetails = com._items || com._dimensoes || Object.keys(com).filter(k => k !== '_dimensoes' && k !== '_items').length > 0;
@@ -609,8 +617,8 @@ function renderTable(rows) {
               ? `<button class="foto-btn" onclick='openFotoModal(${JSON.stringify(r.fotos)}, "${r.sitio||''}", "${r.fecha||''}")'>📷 ${nFotos}</button>`
               : '<span style="color:#ccc;font-size:12px">—</span>'
             }</td>
-            <td>${hasDetails
-              ? `<button class="foto-btn" style="background:#1a3a8f;" onclick='openDetalhesModal(${JSON.stringify(com)})'>📋</button>`
+            <td>${hasDetails || nFotos > 0
+              ? `<button class="foto-btn" style="background:#1a3a8f;" onclick="openDetalhesModalByIdx(${_ri})">📋</button>`
               : '<span style="color:#ccc;font-size:12px">—</span>'
             }</td>
             <td><button class="del-btn" onclick="openDeleteModal('${r.id}')">🗑</button></td>
@@ -688,64 +696,291 @@ function closeFotoModal() {
   document.getElementById('fotoModal').classList.remove('open');
 }
 
-function openDetalhesModal(com) {
+let _DET_DATA = null;
+
+function openDetalhesModalByIdx(idx) {
+  openDetalhesModal(CURRENT_ROWS[idx]);
+}
+
+function openDetalhesModal(r) {
+  _DET_DATA = r;
+  const com = (() => {
+    try {
+      if (typeof r.comentarios === 'object' && r.comentarios) return r.comentarios;
+      if (typeof r.comentarios === 'string') return JSON.parse(r.comentarios || '{}');
+    } catch(e) {}
+    return {};
+  })();
+
   const dimLabels = {
     alca_comp:'Comprimento (alça)', alca_larg:'Largura (alça)', alca_alt:'Altura total', alca_larg2:'Largura total',
-    saca_larg:'Largura (quadrado)', saca_alt:'Altura (quadrado)', saca_comp:'Comprimento saca', saca_larg2:'Largura total saca'
+    saca_larg:'Largura (saca)', saca_alt:'Altura (saca)', saca_comp:'Comprimento saca', saca_larg2:'Largura total saca'
   };
+
   function ratingMeta(v) {
     if (v === null || v === undefined) return { label:'—', color:'#aaa', bg:'#f5f5f5' };
     if (v >= 0.9) return { label:'Excel.', color:'#00A650', bg:'#edfff5' };
-    if (v >= 0.4) return { label:'Interm.',color:'#FF7733', bg:'#fff5ee' };
-    return { label:'Ruim',   color:'#E8303F', bg:'#fff0f1' };
+    if (v >= 0.4) return { label:'Interm.', color:'#FF7733', bg:'#fff5ee' };
+    return { label:'Ruim', color:'#E8303F', bg:'#fff0f1' };
   }
+
+  // Header
+  document.getElementById('detTitle').textContent = (r.equipo_tipo || 'Avaliação') + (r.sitio ? ' — ' + r.sitio : '');
+  document.getElementById('detSub').textContent = [r.evaluador, r.fecha].filter(Boolean).join(' · ');
+
+  // Meta row
+  const vdColor = (r.veredicto==='Aprobado'||r.veredicto==='Aprovado') ? '#00A650' :
+                  (r.veredicto==='Reprobado'||r.veredicto==='Reprovado') ? '#E8303F' : '#FF7733';
+  document.getElementById('detMeta').innerHTML = `
+    <div style="padding:.7rem 1.25rem;border-right:1px solid #f0f0f0;">
+      <div style="font-size:10px;text-transform:uppercase;color:#888;margin-bottom:2px;">Fornecedor</div>
+      <div style="font-size:13px;font-weight:600;">${r.fornecedor || '—'}</div>
+    </div>
+    <div style="padding:.7rem 1.25rem;border-right:1px solid #f0f0f0;">
+      <div style="font-size:10px;text-transform:uppercase;color:#888;margin-bottom:2px;">País · Tipo</div>
+      <div style="font-size:13px;font-weight:600;">${[r.pais, r.tipo_avaliacao].filter(Boolean).join(' · ') || '—'}</div>
+    </div>
+    <div style="padding:.7rem 1.25rem;">
+      <div style="font-size:10px;text-transform:uppercase;color:#888;margin-bottom:2px;">Resultado</div>
+      <div style="font-size:13px;font-weight:700;color:${vdColor};">${r.veredicto || '—'}</div>
+    </div>
+  `;
+
+  // Score bar
+  const sc = r.score_final;
+  const scColor = !sc ? '#aaa' : sc <= 40 ? '#E8303F' : sc <= 80 ? '#FF7733' : '#00A650';
+  document.getElementById('detScore').style.display = (sc !== null && sc !== undefined) ? '' : 'none';
+  if (sc !== null && sc !== undefined) {
+    document.getElementById('detScore').innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div>
+          <div style="font-size:22px;font-weight:800;color:${scColor};">${sc}%</div>
+          <div style="font-size:11px;color:#888;">Score final</div>
+        </div>
+        <div style="flex:1;height:8px;background:#f0f0f0;border-radius:99px;overflow:hidden;">
+          <div style="height:100%;width:${sc}%;background:${scColor};border-radius:99px;"></div>
+        </div>
+      </div>`;
+  }
+
+  // Content: items + dimensions + photos
   let html = '';
 
-  // Itens avaliados (título + nota + comentário)
+  // Items
   if (com._items && Object.keys(com._items).length > 0) {
-    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Itens avaliados</div>';
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.5px;margin-bottom:10px;">Itens avaliados</div>';
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">';
     Object.entries(com._items).sort((a,b) => parseInt(a[0])-parseInt(b[0])).forEach(([n, item]) => {
       const m = ratingMeta(item.rating);
-      const notaBadge = `<span style="background:${m.bg};color:${m.color};font-weight:700;font-size:11px;padding:2px 8px;border-radius:8px;border:1px solid ${m.color};">${m.label}</span>`;
-      html += `<tr style="border-bottom:1px solid #f0f0f0;">
-        <td style="padding:8px 0;width:40%;vertical-align:top;">
-          <div style="font-size:11px;color:#999;">Item ${n}</div>
-          <div style="font-weight:600;font-size:12px;">${item.title}</div>
+      html += `<tr style="border-bottom:1px solid #f5f5f5;">
+        <td style="padding:8px 8px 8px 0;width:40%;vertical-align:top;">
+          <div style="font-size:10px;color:#bbb;">Item ${n}</div>
+          <div style="font-weight:600;font-size:13px;">${item.title || '—'}</div>
         </td>
-        <td style="padding:8px 4px;width:20%;vertical-align:top;">${notaBadge}</td>
+        <td style="padding:8px;width:18%;vertical-align:top;text-align:center;">
+          <span style="background:${m.bg};color:${m.color};font-weight:700;font-size:11px;padding:3px 9px;border-radius:8px;border:1px solid ${m.color};">${m.label}</span>
+        </td>
         <td style="padding:8px 0;color:#555;font-size:12px;vertical-align:top;">${item.comment || '<span style="color:#ccc">—</span>'}</td>
       </tr>`;
     });
     html += '</table>';
   } else {
-    // Fallback para registros antigos sem _items
     const commentKeys = Object.keys(com).filter(k => k !== '_dimensoes' && k !== '_items');
     if (commentKeys.length > 0) {
-      html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Comentários por item</div>';
+      html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.5px;margin-bottom:10px;">Comentários por item</div>';
       html += '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">';
       commentKeys.forEach(k => {
-        html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="color:#999;padding:6px 0;width:30%;font-size:12px;">Item ${parseInt(k)+1}</td><td style="padding:6px 0;">${com[k]}</td></tr>`;
+        html += `<tr style="border-bottom:1px solid #f5f5f5;"><td style="color:#bbb;padding:7px 8px 7px 0;width:28%;font-size:11px;">Item ${parseInt(k)+1}</td><td style="padding:7px 0;font-size:13px;">${com[k]}</td></tr>`;
       });
       html += '</table>';
     }
   }
 
-  // Dimensões medidas
+  // Dimensions
   if (com._dimensoes && Object.keys(com._dimensoes).length > 0) {
-    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.04em;margin-bottom:8px;">Medições registradas</div>';
-    html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.5px;margin:0 0 10px;">Medições registradas (mm)</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:20px;">';
     Object.entries(com._dimensoes).forEach(([k, v]) => {
       const label = dimLabels[k] || k;
-      html += `<tr style="border-bottom:1px solid #f0f0f0;"><td style="color:#999;padding:6px 0;width:55%;">${label}</td><td style="font-weight:bold;padding:6px 0;">${v} mm</td></tr>`;
+      html += `<div style="background:#f8f8f8;border-radius:7px;padding:.5rem .75rem;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#666;">${label}</span><span style="font-size:13px;font-weight:700;">${v} mm</span></div>`;
     });
-    html += '</table>';
+    html += '</div>';
+  }
+
+  // Photos
+  const fotos = r.fotos && Array.isArray(r.fotos) ? r.fotos : [];
+  if (fotos.length > 0) {
+    html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.5px;margin-bottom:10px;">Fotos (${fotos.length})</div>`;
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">';
+    fotos.forEach((f, i) => {
+      const url = typeof f === 'string' ? f : f.url;
+      const isVideo = /\.(mp4|mov|avi|webm|mkv|m4v|3gp)(\?|$)/i.test(url);
+      if (isVideo) {
+        html += `<a href="${url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1A1A1A;border-radius:7px;aspect-ratio:1;text-decoration:none;border:1.5px solid #333;gap:4px;"><span style="font-size:24px;">▶</span><span style="color:#FFE600;font-size:9px;font-weight:700;">Vídeo</span></a>`;
+      } else {
+        html += `<a href="${url}" target="_blank" style="display:block;border-radius:7px;overflow:hidden;border:1.5px solid #e0e0e0;aspect-ratio:1;"><img src="${url}" loading="lazy" alt="Foto ${i+1}" style="width:100%;height:100%;object-fit:cover;"></a>`;
+      }
+    });
+    html += '</div>';
   }
 
   if (!html) html = '<p style="color:#999;font-size:13px;">Nenhum detalhe registrado.</p>';
   document.getElementById('detContent').innerHTML = html;
   document.getElementById('detModal').classList.add('open');
 }
+
+async function downloadDetPdf() {
+  if (!_DET_DATA || !window.PDFLib) { alert('pdf-lib não carregado.'); return; }
+  const btn = document.getElementById('detPdfBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Gerando...';
+  btn.disabled = true;
+
+  try {
+    const { PDFDocument, rgb, StandardFonts, PDFString } = PDFLib;
+    const r = _DET_DATA;
+    const com = (() => {
+      try {
+        if (typeof r.comentarios === 'object' && r.comentarios) return r.comentarios;
+        if (typeof r.comentarios === 'string') return JSON.parse(r.comentarios || '{}');
+      } catch(e) {}
+      return {};
+    })();
+
+    const dimLabels = {
+      alca_comp:'Comprimento (alca)', alca_larg:'Largura (alca)', alca_alt:'Altura total', alca_larg2:'Largura total',
+      saca_larg:'Largura (saca)', saca_alt:'Altura (saca)', saca_comp:'Comprimento saca', saca_larg2:'Largura total saca'
+    };
+
+    const safe = s => (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\x20-\x7E]/g,'?');
+    const ratingLabel = v => { if (v===null||v===undefined) return '-'; if (v>=0.9) return 'Excelente'; if (v>=0.4) return 'Intermediario'; return 'Ruim'; };
+    const ratingRgb   = v => { if (v===null||v===undefined) return rgb(.67,.67,.67); if (v>=0.9) return rgb(0,.65,.31); if (v>=0.4) return rgb(1,.47,.2); return rgb(.91,.19,.25); };
+
+    const pdfDoc = await PDFDocument.create();
+    const font  = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontB = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    const PW = 595, PH = 842;
+    let page = pdfDoc.addPage([PW, PH]);
+    let y = PH;
+
+    // Header band
+    page.drawRectangle({ x:0, y:PH-70, width:PW, height:70, color:rgb(0.1,0.23,0.56) });
+    page.drawText('MTM', { x:22, y:PH-50, size:26, font:fontB, color:rgb(1,1,1) });
+    page.drawText('Relatorio de Avaliacao — ' + safe(r.equipo_tipo||''), { x:72, y:PH-40, size:12, font:fontB, color:rgb(1,1,1) });
+    const subLine = safe([r.evaluador, r.fecha].filter(Boolean).join(' · '));
+    if (subLine) page.drawText(subLine, { x:72, y:PH-57, size:9, font, color:rgb(.85,.85,.85) });
+
+    y = PH - 90;
+
+    // Meta fields
+    const metaRows = [
+      ['Fornecedor', safe(r.fornecedor)],
+      ['Sitio', safe(r.sitio)],
+      ['Pais / Tipo', safe([r.pais, r.tipo_avaliacao].filter(Boolean).join(' / '))],
+      ['Veredicto', safe(r.veredicto)],
+    ];
+    if (r.score_final !== null && r.score_final !== undefined) metaRows.push(['Score Final', r.score_final + '%']);
+    metaRows.forEach(([label, value]) => {
+      y -= 18;
+      page.drawText(label + ':', { x:30, y, size:9, font, color:rgb(.5,.5,.5) });
+      page.drawText(value || '-', { x:140, y, size:9, font:fontB, color:rgb(.1,.1,.1) });
+    });
+
+    y -= 18;
+    page.drawLine({ start:{x:30,y}, end:{x:PW-30,y}, thickness:.5, color:rgb(.8,.8,.8) });
+    y -= 14;
+
+    // Items
+    const items = com._items ? Object.entries(com._items).sort((a,b) => parseInt(a[0])-parseInt(b[0])) : [];
+    if (items.length > 0) {
+      page.drawText('ITENS AVALIADOS', { x:30, y, size:8, font:fontB, color:rgb(.5,.5,.5) });
+      y -= 16;
+      items.forEach(([n, item]) => {
+        if (y < 80) { page = pdfDoc.addPage([PW,PH]); y = PH-40; }
+        page.drawText('Item ' + n + ': ' + safe(item.title||''), { x:30, y, size:9, font:fontB, color:rgb(.1,.1,.1) });
+        page.drawText(ratingLabel(item.rating), { x:PW-110, y, size:9, font:fontB, color:ratingRgb(item.rating) });
+        y -= 13;
+        if (item.comment) {
+          const comment = safe(item.comment);
+          page.drawText(comment, { x:42, y, size:8, font, color:rgb(.4,.4,.4), maxWidth:PW-80 });
+          y -= 14;
+        }
+        y -= 4;
+      });
+      y -= 8;
+    }
+
+    // Dimensions
+    const dims = com._dimensoes ? Object.entries(com._dimensoes) : [];
+    if (dims.length > 0) {
+      if (y < 80) { page = pdfDoc.addPage([PW,PH]); y = PH-40; }
+      page.drawLine({ start:{x:30,y}, end:{x:PW-30,y}, thickness:.5, color:rgb(.8,.8,.8) });
+      y -= 16;
+      page.drawText('MEDICOES REGISTRADAS (mm)', { x:30, y, size:8, font:fontB, color:rgb(.5,.5,.5) });
+      y -= 16;
+      dims.forEach(([k, v]) => {
+        if (y < 80) { page = pdfDoc.addPage([PW,PH]); y = PH-40; }
+        page.drawText(safe(dimLabels[k]||k) + ':', { x:30, y, size:9, font, color:rgb(.4,.4,.4) });
+        page.drawText(v + ' mm', { x:220, y, size:9, font:fontB, color:rgb(.1,.1,.1) });
+        y -= 16;
+      });
+      y -= 8;
+    }
+
+    // Photos
+    const fotos = r.fotos && Array.isArray(r.fotos) ? r.fotos : [];
+    if (fotos.length > 0) {
+      if (y < 80) { page = pdfDoc.addPage([PW,PH]); y = PH-40; }
+      page.drawLine({ start:{x:30,y}, end:{x:PW-30,y}, thickness:.5, color:rgb(.8,.8,.8) });
+      y -= 16;
+      page.drawText('FOTOS (' + fotos.length + ')', { x:30, y, size:8, font:fontB, color:rgb(.5,.5,.5) });
+      y -= 16;
+      let col = 0;
+      for (let pi = 0; pi < fotos.length; pi++) {
+        if (y < 60) { page = pdfDoc.addPage([PW,PH]); y = PH-40; col = 0; }
+        const fUrl = typeof fotos[pi] === 'string' ? fotos[pi] : fotos[pi].url;
+        const lx = 30 + col * 265;
+        const label = 'Foto ' + (pi+1);
+        const tw = font.widthOfTextAtSize(label, 9);
+        page.drawText(label, { x:lx, y, size:9, font, color:rgb(0.1,0.3,0.7) });
+        try {
+          const annot = pdfDoc.context.obj({
+            Type:'Annot', Subtype:'Link',
+            Rect:[lx, y-2, lx+tw+4, y+11],
+            Border:[0,0,0],
+            A: pdfDoc.context.obj({ Type:'Action', S:'URI', URI: PDFString.of(fUrl) })
+          });
+          page.node.addAnnot(pdfDoc.context.register(annot));
+        } catch(e) {}
+        col++;
+        if (col >= 2) { col = 0; y -= 16; }
+      }
+      if (col !== 0) y -= 16;
+    }
+
+    // Footer
+    const lastPage = pdfDoc.getPages()[pdfDoc.getPageCount()-1];
+    lastPage.drawText('Gerado por MTM Homologacion — ' + new Date().toLocaleDateString('pt-BR'), {
+      x:30, y:20, size:8, font, color:rgb(.7,.7,.7)
+    });
+
+    const bytes = await pdfDoc.save();
+    const blob = new Blob([bytes], { type:'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fname = ['Relatorio', safe(r.sitio), safe(r.fecha)].filter(s=>s&&s!=='-').join('_').replace(/\s/g,'_') + '.pdf';
+    a.href = url; a.download = fname; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    console.error('PDF error:', e);
+    alert('Erro ao gerar PDF: ' + e.message);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('detModal')?.addEventListener('click', e => {
     if (e.target === document.getElementById('detModal')) document.getElementById('detModal').classList.remove('open');
@@ -870,14 +1105,22 @@ function exportCSV() {
   </div>
 </div>
 
-<!-- Modal de Detalhes (comentários + dimensões) -->
+<!-- Modal de Detalhes Unificado -->
 <div class="foto-modal-overlay" id="detModal">
-  <div class="foto-modal">
-    <div class="foto-modal-hdr">
-      <div class="foto-modal-title">📋 Comentários e Medições</div>
-      <button class="foto-modal-close" onclick="document.getElementById('detModal').classList.remove('open')">×</button>
+  <div class="foto-modal" style="max-width:750px;padding:0;overflow:hidden;">
+    <div style="background:#1a3a8f;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;border-radius:13px 13px 0 0;">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#fff;" id="detTitle">Relatório</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px;" id="detSub"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="detPdfBtn" onclick="downloadDetPdf()" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.45);padding:5px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">⬇ Baixar PDF</button>
+        <button class="foto-modal-close" onclick="document.getElementById('detModal').classList.remove('open')" style="color:#fff;font-size:28px;line-height:1;background:none;border:none;cursor:pointer;padding:0 4px;">×</button>
+      </div>
     </div>
-    <div id="detContent"></div>
+    <div id="detMeta" style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #f0f0f0;background:#fff;"></div>
+    <div id="detScore" style="padding:.75rem 1.5rem;border-bottom:1px solid #f0f0f0;background:#fff;"></div>
+    <div id="detContent" style="padding:1.25rem 1.5rem;max-height:55vh;overflow-y:auto;background:#fff;border-radius:0 0 13px 13px;"></div>
   </div>
 </div>
 
