@@ -676,6 +676,7 @@ try {
 } catch(e) { console.warn('Supabase não carregado:', e); }
 
 let tipoAvaliacao = '';
+let fornecedorNome = '';
 let emailFornecedor = '';
 
 let LANG = 'es';
@@ -1298,6 +1299,7 @@ function checkIniciar() {
 
 function iniciarAvaliacao() {
   if (!tipoAvaliacao) return;
+  fornecedorNome  = (document.getElementById('fornecedor').value || '').trim();
   emailFornecedor = (document.getElementById('email-fornecedor-input').value || '').trim();
   document.getElementById('modal-tipo').classList.remove('open');
   // Show supplier banner
