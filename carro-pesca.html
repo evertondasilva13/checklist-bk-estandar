@@ -1338,8 +1338,6 @@ function switchLang(lang) {
 async function saveToSupabase() {
   if (!tipoAvaliacao) {
     document.getElementById('modal-tipo').classList.add('open');
-  document.getElementById('fornecedor')?.addEventListener('input', checkIniciar);
-  document.getElementById('email-fornecedor-input')?.addEventListener('input', checkIniciar);
     return;
   }
   const btn = document.getElementById('saveBtn');
@@ -1469,6 +1467,8 @@ function closeLightbox() {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fecha').valueAsDate = new Date();
   document.getElementById('modal-tipo').classList.add('open');
+  document.getElementById('fornecedor')?.addEventListener('input', checkIniciar);
+  document.getElementById('email-fornecedor-input')?.addEventListener('input', checkIniciar);
   updateModalLang();
 
   // Inicializar secciones como abiertas ANTES de renderizar
