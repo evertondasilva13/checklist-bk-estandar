@@ -27,9 +27,9 @@
   /* ── Checklist Picker Modal ── */
   #modal-checklist { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:3000; align-items:center; justify-content:center; }
   #modal-checklist.open { display:flex; }
-  .ck-box { background:#fff; border-radius:14px; padding:1.5rem; max-width:400px; width:92%; }
-  .ck-box h3 { font-size:1rem; font-weight:800; color:var(--dk); margin:0 0 1rem; }
-  .ck-list { display:flex; flex-direction:column; gap:8px; }
+  .ck-box { background:#fff; border-radius:14px; padding:1.5rem; max-width:400px; width:92%; max-height:90vh; display:flex; flex-direction:column; }
+  .ck-box h3 { font-size:1rem; font-weight:800; color:var(--dk); margin:0 0 1rem; flex-shrink:0; }
+  .ck-list { display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; padding-right:4px; }
   .ck-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1.5px solid var(--br); border-radius:10px; text-decoration:none; color:var(--dk); font-weight:700; font-size:.9rem; transition:all .15s; }
   .ck-item:hover { border-color:#aaa; background:var(--lt); }
   .ck-close { margin-top:12px; width:100%; padding:.6rem; background:var(--lt); border:1px solid var(--br); border-radius:8px; cursor:pointer; font-size:.85rem; color:var(--g); font-weight:600; }
@@ -364,7 +364,7 @@
         <a class="ck-item" href="fragiles.html" target="_blank">BK Fragiles</a>
         <a class="ck-item" href="diablito.html" target="_blank">Diablito de Elevación</a>
         <a class="ck-item" href="paletao.html" target="_blank">Paletão Linha Branca</a>
-        <a class="ck-item" href="flowrack.html" target="_blank">Flowrack 3x2</a>
+        <a class="ck-item" href="flowrack3x2.html" target="_blank">Flowrack 3x2</a>
         <a class="ck-item" href="bandeja-aramada.html" target="_blank">Bandeja Aramada BK</a>
         <a class="ck-item" href="testeira-rsc.html" target="_blank">Testeira RSC</a>
         <a class="ck-item" href="bandeja-rsc.html" target="_blank">Bandeja RSC</a>
@@ -372,6 +372,7 @@
         <a class="ck-item" href="escalera-pallet-high.html" target="_blank">Escalera Pallet High</a>
         <a class="ck-item" href="saca-rafia.html" target="_blank">Saca de Ráfia</a>
         <a class="ck-item" href="carro-pesca.html" target="_blank">Carro de Pesca</a>
+        <a class="ck-item" href="baker-fragiles-2.html" target="_blank">Baker de Fragiles 2.0</a>
       </div>
       <button class="ck-close" onclick="document.getElementById('modal-checklist').classList.remove('open')">Fechar</button>
     </div>
