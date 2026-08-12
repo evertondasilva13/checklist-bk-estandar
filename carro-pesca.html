@@ -1390,9 +1390,9 @@ async function saveToSupabase() {
         if (!file || !file.name) continue;
         const ext  = file.name.split('.').pop() || 'jpg';
         const fname = 'carro-pesca/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
-        const { error: upErr } = await _sb.storage.from('checklist-fotos').upload(fname, file, { upsert: true });
+        const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(fname, file, { upsert: true });
         if (!upErr) {
-          const { data: urlData } = _sb.storage.from('checklist-fotos').getPublicUrl(fname);
+          const { data: urlData } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(fname);
           allFotoUrls.push(urlData.publicUrl);
         }
       }
