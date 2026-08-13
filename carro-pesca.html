@@ -1386,14 +1386,23 @@ async function saveToSupabase() {
   const allFotoUrls = [];
   try {
     for (const [key, files] of Object.entries(MEDIA)) {
-      for (const file of (files || [])) {
-        if (!file || !file.name) continue;
-        const ext  = file.name.split('.').pop() || 'jpg';
+      for (const mediaObj of (files || [])) {
+        if (!mediaObj || !mediaObj.name || !mediaObj.data) continue;
+        // Convert base64 data URL to Blob
+        const arr   = mediaObj.data.split(',');
+        const mime  = arr[0].match(/:(.*?);/)[1];
+        const bstr  = atob(arr[1]);
+        const u8arr = new Uint8Array(bstr.length);
+        for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
+        const blob = new Blob([u8arr], { type: mime });
+        const ext  = mediaObj.name.split('.').pop() || 'jpg';
         const fname = 'carro-pesca/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
-        const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(fname, file, { upsert: true });
+        const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(fname, blob, { contentType: mime, upsert: true });
         if (!upErr) {
           const { data: urlData } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(fname);
           allFotoUrls.push(urlData.publicUrl);
+        } else {
+          console.warn('Upload error for', mediaObj.name, upErr);
         }
       }
     }
