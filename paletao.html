@@ -604,9 +604,15 @@ function renderAllItems() {
   });
 }
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', renderAllItems);
+  document.addEventListener('DOMContentLoaded', () => {
+    renderAllItems();
+    document.getElementById('fornecedor-input')?.addEventListener('input', checkIniciar);
+    document.getElementById('email-fornecedor-input')?.addEventListener('input', checkIniciar);
+  });
 } else {
   renderAllItems();
+  document.getElementById('fornecedor-input')?.addEventListener('input', checkIniciar);
+  document.getElementById('email-fornecedor-input')?.addEventListener('input', checkIniciar);
 }
 
 // ── Toggle section ──
