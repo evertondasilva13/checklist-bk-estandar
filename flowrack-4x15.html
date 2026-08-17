@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flowrack 4x1,5m — Mercado Libre</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root {
+    --y: #FFE600; --yd: #E6CF00;
+    --dk: #1A1A1A; --g: #666; --lt: #F5F5F5; --br: #E0E0E0;
+    --bad: #E8303F; --mid: #FF7733; --ok: #00A650;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lt); color: var(--dk); }
+
+  header { background: var(--y); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 58px; box-shadow: 0 2px 6px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--dk); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--y); font-weight: 900; font-size: 13px; }
+  .logo-text { font-size: 16px; font-weight: 800; color: var(--dk); }
+  .logo-sub { font-size: 11px; color: #555; }
+  .lang-toggle { display:flex; gap:4px; align-items:center; }
+  .lang-toggle button { background:transparent; border:2px solid var(--dk); color:var(--dk); padding:3px 10px; border-radius:14px; font-size:11px; font-weight:800; cursor:pointer; transition:all .15s; }
+  .lang-toggle button.act { background:var(--dk); color:var(--y); }
+  .hdr-score { background: var(--dk); color: var(--y); padding: 6px 16px; border-radius: 18px; font-size: 13px; font-weight: 700; }
+  main { max-width: 860px; margin: 0 auto; padding: 18px 12px 80px; }
+  .card { background: white; border-radius: 10px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .card-top { border-top: 4px solid var(--y); }
+  .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 13px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:540px){.form-grid{grid-template-columns:1fr}}
+  .field label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 4px; }
+  .field input, .field select { width: 100%; border: 1.5px solid var(--br); border-radius: 7px; padding: 8px 11px; font-size: 13px; outline: none; transition: border-color .2s; background: white; }
+  .field input:focus, .field select:focus { border-color: var(--dk); }
+  .prog-wrap { display: flex; align-items: center; gap: 12px; }
+  .prog-wrap span { font-size: 12px; font-weight: 600; min-width: 120px; }
+  .prog-track { flex: 1; height: 7px; background: var(--br); border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--dk); border-radius: 4px; transition: width .4s; width: 0%; }
+  .prog-count { font-size: 12px; font-weight: 700; min-width: 44px; text-align: right; }
+  .section { background: white; border-radius: 10px; margin-bottom: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .sec-hdr { background: var(--dk); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .sec-hdr h3 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+  .sec-badge { background: rgba(255,230,0,.18); color: var(--y); padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .sec-weight { font-size: 10px; opacity: .65; }
+  .sec-score { background: var(--y); color: var(--dk); padding: 3px 11px; border-radius: 11px; font-size: 11px; font-weight: 700; min-width: 48px; text-align: center; }
+  .sec-chev { transition: transform .2s; }
+  .sec-chev.open { transform: rotate(180deg); }
+  .item { border-bottom: 1px solid var(--br); }
+  .item:last-child { border-bottom: none; }
+  .item-hdr { padding: 11px 14px; display: flex; align-items: center; gap: 9px; cursor: pointer; transition: background .12s; }
+  .item-hdr:hover { background: #f9f9f9; }
+  .item-num { background: var(--y); color: var(--dk); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; flex-shrink: 0; }
+  .item-main { flex: 1; min-width: 0; }
+  .item-title { font-size: 13px; font-weight: 600; }
+  .item-sub { font-size: 11px; color: var(--g); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rating-inline { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
+  .rb { border: 1.5px solid var(--br); background: white; padding: 5px 7px; border-radius: 7px; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 46px; color: #C0C0C0; }
+  .rb:hover { border-color: #999; color: #777; }
+  .rb-lbl { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: inherit; line-height: 1; }
+  .rb.malo.sel        { color: var(--bad);  border-color: var(--bad);  background: #fff0f1; }
+  .rb.intermedio.sel  { color: var(--mid);  border-color: var(--mid);  background: #fff5ee; }
+  .rb.excelente.sel   { color: var(--ok);   border-color: var(--ok);   background: #edfff5; }
+  .rb.malo:not(.sel):hover        { color: var(--bad); border-color: #f9b; }
+  .rb.intermedio:not(.sel):hover  { color: var(--mid); border-color: #fdb; }
+  .rb.excelente:not(.sel):hover   { color: var(--ok);  border-color: #9db; }
+  .chev { flex-shrink: 0; color: var(--g); transition: transform .2s; }
+  .chev.open { transform: rotate(180deg); }
+  .item-detail { display: none; padding: 0 14px 16px 46px; background: #fafafa; border-top: 1px dashed var(--br); }
+  .item-detail.open { display: block; }
+  .crit { background: #efefef; border-left: 3px solid var(--dk); border-radius: 0 6px 6px 0; padding: 10px 12px; margin: 10px 0; font-size: 12px; color: #222; line-height: 1.6; white-space: pre-line; }
+  .tool { background: #FFFCE0; border-left: 3px solid var(--yd); border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 12px; color: #4a3e00; line-height: 1.5; }
+  .tool-lbl { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; color: #7a6500; }
+  .media-row { display: flex; gap: 7px; margin: 8px 0; flex-wrap: wrap; }
+  .vchip { background: var(--dk); color: var(--y); padding: 4px 10px; border-radius: 14px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; text-decoration: none; cursor: pointer; }
+  a.vchip:hover { background: #333; }
+  .ref-photos { margin: 10px 0 6px; }
+  .ref-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 6px; }
+  .ref-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ref-img { width: 110px; height: 80px; object-fit: contain; background: #f0f0f0; border-radius: 6px; border: 2px solid var(--br); cursor: zoom-in; transition: border-color .15s; }
+  .ref-img:hover { border-color: var(--dk); }
+  .lb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:999; align-items:center; justify-content:center; cursor:zoom-out; }
+  .lb-overlay.open { display:flex; }
+  .lb-img { max-width:92vw; max-height:92vh; border-radius:8px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+  .val-toast { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1A1A1A; color:white; border-radius:12px; padding:14px 20px; max-width:420px; width:calc(100% - 32px); z-index:200; box-shadow:0 4px 20px rgba(0,0,0,.25); }
+  .val-toast.show { display:block; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+  .val-toast-hdr { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--y); margin-bottom:6px; }
+  .val-toast-list { font-size:12px; color:#ddd; line-height:1.7; }
+  .val-toast-close { margin-left:auto; background:none; border:none; color:#aaa; cursor:pointer; font-size:18px; line-height:1; padding:0 2px; }
+  .val-toast-close:hover { color:white; }
+  .sugg { background: #F5F0FF; border-left: 3px solid #8B6FD4; border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 11.5px; color: #3D2A7A; white-space: pre-line; line-height: 1.5; }
+  .cmnt { margin-top: 9px; }
+  .cmnt label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 4px; }
+  .cmnt textarea { width: 100%; border: 1.5px solid var(--br); border-radius: 6px; padding: 8px 10px; font-size: 12px; resize: vertical; min-height: 58px; outline: none; font-family: inherit; transition: border-color .2s; }
+  .cmnt textarea:focus { border-color: var(--dk); }
+  .photos { margin-top: 9px; }
+  .photos label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 5px; }
+  .pdrop { border: 2px dashed var(--br); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all .2s; background: white; }
+  .pdrop:hover { border-color: var(--dk); background: #f8f8f8; }
+  .pdrop input { display: none; }
+  .pdrop-txt { font-size: 11px; color: var(--g); margin-top: 4px; }
+  .ppreview { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+  .pthumb { position: relative; width: 64px; height: 64px; border-radius: 6px; overflow: hidden; border: 2px solid var(--br); }
+  .pthumb img { width: 100%; height: 100%; object-fit: cover; }
+  .prm { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,.55); color: white; border: none; border-radius: 50%; width: 15px; height: 15px; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; }
+  .score-panel { background: white; border-radius: 10px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border-top: 4px solid var(--y); }
+  .score-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .srows { display: flex; flex-direction: column; gap: 10px; }
+  .srow { display: flex; align-items: center; gap: 9px; }
+  .srow-lbl { font-size: 12px; font-weight: 600; min-width: 200px; }
+  .sbar-wrap { flex: 1; height: 9px; background: var(--br); border-radius: 5px; overflow: hidden; }
+  .sbar { height: 100%; border-radius: 5px; transition: width .5s, background .3s; background: var(--dk); width: 0%; }
+  .sval { min-width: 42px; text-align: right; font-size: 13px; font-weight: 700; }
+  .sdiv { border: none; border-top: 1px solid var(--br); margin: 5px 0; }
+  .stotal { display: flex; align-items: center; gap: 9px; background: var(--dk); border-radius: 8px; padding: 13px 15px; margin-top: 5px; }
+  .stotal-lbl { font-size: 13px; font-weight: 700; color: white; flex: 1; }
+  .stotal-val { font-size: 21px; font-weight: 900; color: var(--y); }
+  .verdict { font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 14px; margin-left: 5px; }
+  .v-rep { background: var(--bad); color: white; }
+  .v-ev  { background: var(--mid); color: white; }
+  .v-aj  { background: #D07800; color: white; }
+  .v-ap  { background: var(--ok);  color: white; }
+  .scale-note { margin-top: 12px; font-size: 11px; color: var(--g); line-height: 1.7; }
+  .actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+  .btn { padding: 10px 22px; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all .15s; }
+  .btn-outline { background: white; color: var(--dk); border: 2px solid var(--dk); }
+  .btn-outline:hover { background: #f0f0f0; }
+  .btn-y { background: var(--y); color: var(--dk); }
+  .btn-y:hover { background: var(--yd); }
+  .btn-dk { background: var(--dk); color: var(--y); }
+  .btn-dk:hover { background: #333; }
+  @media print { header{position:relative} .btn{display:none} .item-detail{display:block!important} .pdrop{display:none} }
+  #modal-tipo { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:2000; display:flex; align-items:center; justify-content:center; }
+  .modal-box { background:var(--lt); border-radius:14px; padding:2rem 2rem 1.5rem; max-width:440px; width:92%; text-align:center; border:2px solid var(--br); }
+  .modal-box h2 { margin:0 0 .4rem; font-size:1.25rem; color:var(--dk); }
+  .modal-box p  { margin:0 0 1.4rem; font-size:.9rem; color:var(--g); }
+  .tipo-btns { display:flex; gap:.9rem; margin-bottom:1.4rem; }
+  .tipo-btn { flex:1; padding:1.1rem .5rem; border:2px solid var(--br); border-radius:10px; background:#fff; cursor:pointer; font-size:.95rem; font-weight:600; color:var(--dk); transition:all .18s; }
+  .tipo-btn:hover { border-color:#bbb; background:var(--lt); }
+  .tipo-btn.sel { border-color:var(--y); background:var(--y); color:var(--dk); }
+  .tipo-btn .tipo-icon { font-size:1.8rem; display:block; margin-bottom:.35rem; }
+  .tipo-desc { display:block; font-size:.73rem; font-weight:400; color:var(--g); margin-top:.3rem; line-height:1.3; }
+  .tipo-btn.sel .tipo-desc { color:var(--dk); opacity:.75; }
+  .modal-fornecedor { text-align:left; margin-bottom:1.2rem; }
+  .modal-fornecedor label { display:block; font-size:.82rem; font-weight:600; color:var(--g); margin-bottom:.3rem; }
+  .modal-fornecedor input { width:100%; box-sizing:border-box; padding:.55rem .75rem; border:1.5px solid var(--br); border-radius:7px; font-size:.92rem; background:#fff; color:var(--dk); }
+  .modal-fornecedor input:focus { outline:none; border-color:var(--dk); }
+  #btn-iniciar { width:100%; padding:.8rem; background:var(--dk); color:var(--y); border:none; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; opacity:.4; transition:opacity .2s; }
+  #btn-iniciar:not(:disabled) { opacity:1; }
+  #btn-iniciar:not(:disabled):hover { background:#333; }
+  #supplier-banner { display:none; background:#1A1A1A; color:#FFE600; padding:9px 20px; font-size:13px; font-weight:700; position:sticky; top:58px; z-index:90; gap:14px; align-items:center; flex-wrap:wrap; border-bottom:3px solid #FFE600; }
+  #supplier-banner.visible { display:flex; }
+  #supplier-banner .sb-chip { background:#FFE600; color:#1A1A1A; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:800; }
+  #supplier-banner .sb-sep { opacity:.4; margin:0 2px; }
+  #supplier-banner .sb-email { opacity:.75; font-size:12px; font-weight:400; }
+</style>
+<div class="val-toast" id="valToast">
+  <div class="val-toast-hdr">
+    <span>⚠️</span>
+    <span id="valToastMsg"></span>
+    <button class="val-toast-close" onclick="document.getElementById('valToast').classList.remove('show')">×</button>
+  </div>
+  <div class="val-toast-list" id="valToastList"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">ML</div>
+    <div>
+      <div class="logo-text" data-i18n="title">Flowrack 4x1,5m</div>
+      <div class="logo-sub" data-i18n="subtitle">Evaluación de Equipamiento</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="lang-toggle">
+      <button id="btn-pt" onclick="switchLang('pt')">PT</button>
+      <button id="btn-es" onclick="switchLang('es')" class="act">ES</button>
+    </div>
+    <div class="hdr-score">Nota: <span id="hdrVal">—</span></div>
+  </div>
+</header>
+
+<div id="supplier-banner">
+  <span class="sb-chip" id="sbTipo"></span>
+  <span class="sb-sep">|</span>
+  <span id="sbFornec"></span>
+  <span class="sb-sep">·</span>
+  <span class="sb-email" id="sbEmail"></span>
+</div>
+
+<div id="modal-tipo" style="display:none">
+  <div class="modal-box">
+    <h2 data-i18n="modalTipoTitle">Tipo de Avaliação</h2>
+    <p data-i18n="modalTipoDesc">Selecione antes de iniciar a inspeção</p>
+    <div class="tipo-btns">
+      <button class="tipo-btn" id="btn-tipo-proto" onclick="setTipo('prototipo')">
+        <span class="tipo-icon">🧪</span>
+        <span data-i18n="tipoProto">Protótipo</span>
+        <span class="tipo-desc" data-i18n="tipoProtoDesc">Novo equipamento de um novo fornecedor</span>
+      </button>
+      <button class="tipo-btn" id="btn-tipo-mass" onclick="setTipo('massivo')">
+        <span class="tipo-icon">📦</span>
+        <span data-i18n="tipoMass">Entrega Massiva</span>
+        <span class="tipo-desc" data-i18n="tipoMassDesc">Entrega de lote com fornecedor já homologado</span>
+      </button>
+    </div>
+    <div class="modal-fornecedor">
+      <label data-i18n="fornecedorLabel">Nome do Fornecedor <span style="color:#E8303F;font-weight:700;">*</span></label>
+      <input type="text" id="fornecedor-input" data-i18n-ph="fornecedorPh" placeholder="Ex: Empresa XYZ Ltda">
+    </div>
+    <div class="modal-fornecedor">
+      <label data-i18n="emailFornecedorLabel">E-mail do Fornecedor <span style="color:#E8303F;font-weight:700;">*</span></label>
+      <input type="email" id="email-fornecedor-input" data-i18n-ph="emailFornecedorPh" placeholder="Ex: contato@fornecedor.com">
+    </div>
+    <button id="btn-iniciar" disabled onclick="iniciarAvaliacao()" data-i18n="iniciarAval">Iniciar Avaliação</button>
+  </div>
+</div>
+
+<main>
+<div class="card card-top">
+  <h2 data-i18n="infoTitle">Informações da Avaliação</h2>
+  <div class="form-grid">
+    <div class="field"><label data-i18n="evaluador">Avaliador</label><input type="text" id="evaluador" data-i18n-ph="evaluadorPh" placeholder="Seu nome completo"></div>
+    <div class="field"><label data-i18n="fecha">Data</label><input type="date" id="fecha"></div>
+    <div class="field"><label data-i18n="sitio">Site / Armazém</label><input type="text" id="sitio" data-i18n-ph="sitioPh" placeholder="Ex: CD São Paulo"></div>
+    <div class="field"><label data-i18n="pais">País</label>
+      <select id="pais">
+        <option value="">— Selecionar —</option>
+        <option value="MLB">MLB — Brasil</option>
+        <option value="MLA">MLA — Argentina</option>
+        <option value="MLM">MLM — México</option>
+        <option value="MLC">MLC — Chile</option>
+        <option value="MCO">MCO — Colombia</option>
+        <option value="MLU">MLU — Uruguay</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="prog-wrap">
+    <span data-i18n="itensEval">Ítens avaliados</span>
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <div class="prog-count" id="pCount">0 / 15</div>
+  </div>
+</div>
+
+<!-- EQUIPO -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('eq',this)">
+    <h3><span data-i18n="secEq">Equipamento / Componentes</span> <span class="sec-badge">9 <span data-i18n="items">ítens</span></span> <span class="sec-weight">· 60%</span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-eq">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-eq"></div>
+</div>
+
+<!-- ESTRUTURA -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('es',this)">
+    <h3><span data-i18n="secEs">Estrutura / Soldas</span> <span class="sec-badge">5 <span data-i18n="items2">ítens</span></span> <span class="sec-weight">· 40%</span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-es">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-es"></div>
+</div>
+
+<!-- PINTURA -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('pi',this)">
+    <h3><span data-i18n="secPi">Pintura / Acabamento</span> <span class="sec-badge">1 <span data-i18n="item1">íten</span></span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-pi"></div>
+</div>
+
+<!-- SCORE PANEL -->
+<div class="score-panel">
+  <h3 data-i18n="resultado">Resultado da Avaliação</h3>
+  <div class="srows">
+    <div class="srow">
+      <div class="srow-lbl" data-i18n="lblEq">Equipamento / Componentes (60%)</div>
+      <div class="sbar-wrap"><div class="sbar" id="bar-eq"></div></div>
+      <div class="sval" id="val-eq">—</div>
+    </div>
+    <div class="srow">
+      <div class="srow-lbl" data-i18n="lblEs">Estrutura / Soldas (40%)</div>
+      <div class="sbar-wrap"><div class="sbar" id="bar-es"></div></div>
+      <div class="sval" id="val-es">—</div>
+    </div>
+    <div class="sdiv"></div>
+    <div class="stotal">
+      <div class="stotal-lbl" data-i18n="evalFinal">Avaliação Final</div>
+      <div class="stotal-val" id="val-tot">—</div>
+      <span class="verdict" id="vdict"></span>
+    </div>
+  </div>
+  <div class="scale-note" data-i18n="scaleNote">0%–40% Reprovado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprovado</div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-outline" onclick="exportData()" data-i18n="exportar">Exportar JSON</button>
+  <button class="btn btn-dk" onclick="finalize()" data-i18n="finalizar">Finalizar avaliação</button>
+</div>
+</main>
+
+<!-- Lightbox -->
+<div id="lb" class="lb-overlay" onclick="closeLightbox()">
+  <img id="lbImg" class="lb-img" src="" alt="">
+</div>
+
+<script>
+let tipoAvaliacao = '';
+let fornecedorNome = '';
+let emailFornecedor = '';
+
+const EMAILJS_PUBLIC_KEY    = 'YOUR_EMAILJS_KEY';
+const EMAILJS_SERVICE_ID    = 'YOUR_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID   = 'YOUR_TEMPLATE_ID';
+const NOTA_CORTE_PROTOTIPO  = 81;
+const NOTIFICATION_EMAILS   = ['everton.dasilva@mercadolivre.com'];
+const SPEC_URL = '';
+
+function setTipo(tipo) {
+  tipoAvaliacao = tipo;
+  document.getElementById('btn-tipo-proto').classList.toggle('sel', tipo === 'prototipo');
+  document.getElementById('btn-tipo-mass').classList.toggle('sel', tipo === 'massivo');
+  checkIniciar();
+}
+function checkIniciar() {
+  const okTipo   = !!tipoAvaliacao;
+  const okFornec = (document.getElementById('fornecedor-input')?.value||'').trim().length > 0;
+  const okEmail  = (document.getElementById('email-fornecedor-input')?.value||'').trim().length > 0;
+  document.getElementById('btn-iniciar').disabled = !(okTipo && okFornec && okEmail);
+}
+function iniciarAvaliacao() {
+  fornecedorNome  = (document.getElementById('fornecedor-input').value || '').trim();
+  emailFornecedor = (document.getElementById('email-fornecedor-input').value || '').trim();
+  document.getElementById('modal-tipo').style.display = 'none';
+  document.getElementById('sbTipo').textContent    = tipoAvaliacao === 'prototipo' ? 'PROTÓTIPO' : 'MASSIVO';
+  document.getElementById('sbFornec').textContent  = fornecedorNome || '';
+  document.getElementById('sbEmail').textContent   = emailFornecedor || '';
+  document.getElementById('supplier-banner').classList.add('visible');
+}
+
+// ── Supabase ──
+const _sb = supabase.createClient('https://amdaounmybtrcpkqfcgx.supabase.co', 'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C');
+
+const S1 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2" opacity=".18"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
+const S2 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
+const S3 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2"/><rect x="18" y="0" width="6" height="18" rx="1.2"/></svg>';
+
+let LANG = 'pt';
+const T = {
+  pt: {
+    title:'Flowrack 4x1,5m', subtitle:'Avaliação de Equipamentos',
+    infoTitle:'Informações da Avaliação',
+    evaluador:'Avaliador', evaluadorPh:'Seu nome completo',
+    fecha:'Data', sitio:'Site / Armazém', sitioPh:'Ex: CD São Paulo', pais:'País',
+    itensEval:'Ítens avaliados', items:'ítens', items2:'ítens', item1:'íten',
+    secEq:'Equipamento / Componentes', secEs:'Estrutura / Soldas', secPi:'Pintura / Acabamento',
+    referencia:'Referência',
+    resultado:'Resultado da Avaliação',
+    lblEq:'Equipamento / Componentes (60%)', lblEs:'Estrutura / Soldas (40%)',
+    evalFinal:'Avaliação Final',
+    scaleNote:'0%–40% Reprovado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprovado',
+    exportar:'Exportar JSON', finalizar:'Finalizar avaliação',
+    malo:'Ruim', interm:'Méd.', excel:'Exce.',
+    herramienta:'Ferramenta', comentarios:'Comentários',
+    obsPlaceholder:'Observações...', fotos:'Fotos',
+    addMedia:'Adicionar fotos ou vídeos', refLabel:'Referência do desenho técnico',
+    verdicts:{ rep:'Reprovado', aj:'Ajustes', ap:'Aprovado' },
+    modalTipoTitle:'Tipo de Avaliação', modalTipoDesc:'Selecione antes de iniciar a inspeção',
+    tipoProto:'Protótipo', tipoMass:'Entrega Massiva',
+    fornecedorLabel:'Nome do Fornecedor', fornecedorPh:'Ex: Empresa XYZ Ltda',
+    emailFornecedorLabel:'E-mail do Fornecedor', emailFornecedorPh:'Ex: contato@fornecedor.com',
+    iniciarAval:'Iniciar Avaliação',
+    tipoProtoDesc:'Novo equipamento de um novo fornecedor',
+    tipoMassDesc:'Entrega de lote com fornecedor já homologado'
+  },
+  es: {
+    title:'Flowrack 4x1,5m', subtitle:'Evaluación de Equipamiento',
+    infoTitle:'Información de la Evaluación',
+    evaluador:'Evaluador', evaluadorPh:'Tu nombre completo',
+    fecha:'Fecha', sitio:'Sitio / Almacén', sitioPh:'Ej: CD São Paulo', pais:'País',
+    itensEval:'Ítems evaluados', items:'ítems', items2:'ítems', item1:'ítem',
+    secEq:'Equipamiento / Componentes', secEs:'Estructura / Soldaduras', secPi:'Pintura / Acabado',
+    referencia:'Referencia',
+    resultado:'Resultado de la Evaluación',
+    lblEq:'Equipamiento / Componentes (60%)', lblEs:'Estructura / Soldaduras (40%)',
+    evalFinal:'Evaluación Final',
+    scaleNote:'0%–40% Reprobado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprobado',
+    exportar:'Exportar JSON', finalizar:'Finalizar evaluación',
+    malo:'Malo', interm:'Interm.', excel:'Excel.',
+    herramienta:'Herramienta', comentarios:'Comentarios',
+    obsPlaceholder:'Observaciones...', fotos:'Fotos',
+    addMedia:'Agregar fotos o videos', refLabel:'Referencia del plano técnico',
+    verdicts:{ rep:'Reprobado', aj:'Ajustes', ap:'Aprobado' },
+    modalTipoTitle:'Tipo de Evaluación', modalTipoDesc:'Seleccione antes de iniciar la inspección',
+    tipoProto:'Prototipo', tipoMass:'Entrega Masiva',
+    fornecedorLabel:'Nombre del Proveedor', fornecedorPh:'Ej: Empresa XYZ Ltda',
+    emailFornecedorLabel:'E-mail del Proveedor', emailFornecedorPh:'Ej: contacto@proveedor.com',
+    iniciarAval:'Iniciar Evaluación',
+    tipoProtoDesc:'Nuevo equipamiento de un nuevo proveedor',
+    tipoMassDesc:'Entrega de lote de un proveedor ya homologado'
+  }
+};
+
+const ITEMS = {
+  eq: [
+    { n:1,
+      t:'Travessas dos Rolos — Dimensões e Quantidade',
+      s:'2 tubos □ 70×30×3mm · comprimento 4000mm · furos para roletes',
+      c:'Verificar a presença e estado das 2 travessas principais (trilhos) que sustentam os roletes.\n\nEspecificação:\n• Quantidade: 2 unidades\n• Seção: □ 70×30×3,00mm (TUBO □)\n• Comprimento: 4000mm\n• 20 furos por trilho para fixação dos roletes (40 total)\n\nRuim: Quantidade incorreta, deformação significativa, furos faltantes ou fora de alinhamento >5mm.\nMéd.: Dimensões dentro da tolerância mas com pequenas imperfeições nos furos, leve deformação ou soldas irregulares.\nExce.: 2 travessas presentes, dimensões corretas, todos os furos alinhados, estrutura rígida sem deformação.',
+      h:'Trena · Paquímetro · Inspeção visual dos furos', v:[] },
+    { n:2,
+      t:'Travessas de Reforço — Dimensões e Fixação',
+      s:'2 tubos □ 70×30×3mm · comprimento 2000mm · soldados transversalmente',
+      c:'Verificar as 2 travessas de reforço transversais que conectam os trilhos principais.\n\nEspecificação:\n• Quantidade: 2 unidades\n• Seção: □ 70×30×3,00mm\n• Comprimento: 2000mm\n• Posição: soldadas paralelas à face inferior\n\nRuim: Ausência de travessas ou desalinhamento >10mm, solda com fissuras.\nMéd.: Travessas presentes mas com leve desalinhamento (5–10mm) ou soldas com irregularidades menores.\nExce.: 2 travessas presentes, bem alinhadas, soldadas corretamente paralelas à face inferior, sem deformações.',
+      h:'Trena · Inspeção visual das soldas', v:[] },
+    { n:3,
+      t:'Travessas da Mesa — Quantidade e Alinhamento',
+      s:'4 tubos □ 40×30×2mm · comprimento 1500mm · paralelas e niveladas',
+      c:'Verificar as 4 travessas que formam a largura da mesa.\n\nEspecificação:\n• Quantidade: 4 unidades\n• Seção: □ 40×30×2,00mm\n• Comprimento: 1500mm\n• Soldadas transversalmente conectando os 2 trilhos principais\n\nRuim: Quantidade < 4 ou desalinhamento >10mm entre travessas.\nMéd.: 4 travessas presentes mas com leve desalinhamento (5–10mm) ou solda com pequenos defeitos.\nExce.: 4 travessas presentes, alinhadas, soldadas paralelamente à face inferior, espaçamento uniforme.',
+      h:'Trena · Esquadro · Nível de bolha', v:[] },
+    { n:4,
+      t:'Roletes — Quantidade, Rotação e Espaçamento',
+      s:'40 roletes Ø50,80mm · distribuídos uniformemente nos 2 trilhos',
+      c:'Verificar os 40 roletes que formam a superfície deslizante da mesa.\n\nEspecificação:\n• Quantidade: 40 roletes (20 por trilho)\n• Diâmetro: Ø50,80mm\n• Espaçamento: 100mm centro a centro (conf. plano)\n• Encaixe: pinos passantes nos furos das travessas dos rolos\n\nRuim: <38 roletes, >3 roletes bloqueados ou com eixo danificado.\nMéd.: 38–39 roletes presentes ou 1–3 roletes com resistência ao giro, sem dano estrutural.\nExce.: 40 roletes presentes, todos girando livremente, sem folga excessiva nos eixos, espaçamento uniforme.',
+      h:'Contagem visual · Teste manual de rotação em cada rolete', v:[] },
+    { n:5,
+      t:'Inclinação da Mesa — Ângulo e Regulagem',
+      s:'Inclinação padrão 2,1° · sistema de regulagem por chapas zincadas',
+      c:'Verificar a inclinação da mesa e o funcionamento do sistema de regulagem de altura.\n\nEspecificação:\n• Inclinação padrão: 2,1° (conf. diagrama de inclinação plano pág. 5)\n• Altura ajustável via chapas de ajuste de angulação zincadas (item 16 do BOM)\n• Parafuso de fixação: 5/16"\n\nRuim: Mesa horizontal (0°) ou inclinação >5°; sistema de regulagem bloqueado ou danificado.\nMéd.: Inclinação presente mas fora do padrão (1°–1,5° ou 2,5°–5°), ou regulagem funcional com dificuldade de ajuste.\nExce.: Inclinação de 2,1° (±0,3°), sistema de regulagem operacional com parafusos apertados corretamente.',
+      h:'Inclinômetro digital / app de nível · Teste de regulagem manual', v:[] },
+    { n:6,
+      t:'Sistema de Regulagem de Altura — Chapas e Parafusos',
+      s:'4 chapas zincadas ajuste angulação + 4 travas do pé + parafusos 5/16"',
+      c:'Verificar o sistema de regulagem de altura e inclinação da mesa.\n\nComponentes (conf. BOM):\n• 4 chapas de ajuste de angulação (item 16): 23×43×400mm zincado, com furo de indexação\n• 4 travamentos do pé (item 17): 200×85×30mm zincado\n• Parafusos: HBOLT 5/16" e porcas correspondentes\n\nRuim: Chapas ausentes ou sem furos de indexação; parafusos faltantes ou sem rosca.\nMéd.: Sistema presente mas chapas com deformação, furos obstruídos ou dificuldade de regulagem.\nExce.: Todas as chapas presentes, sem deformações, parafusos bem apertados, regulagem suave em todas as posições.',
+      h:'Inspeção visual · Teste de regulagem manual · Chave 5/16"', v:[] },
+    { n:7,
+      t:'Rodízios — Configuração e Estado',
+      s:'2 rodízios c/ freio + 2 s/ freio · suporte aço Ø150mm',
+      c:'Verificar os 4 rodízios da estrutura de base.\n\nEspecificação (conf. BOM):\n• 2× RODIZIO GIRATÓRIO COM FREIO: RE.F5-150-SSF-N (lado de saída)\n• 2× RODIZIO GIRATÓRIO SEM FREIO: RE.F5-150-SSL-N (lado oposto)\n• Diâmetro: Ø150mm, suporte de aço\n• Fixação: chapas de rodízio 200×200×3mm (4 furos cada)\n\nRuim: Configuração invertida (freio no lado errado), ≥2 rodízios bloqueados ou com rolamento danificado.\nMéd.: Configuração correta mas 1 freio com acionamento parcial ou 1 rodízio com resistência anormal.\nExce.: 2 c/ freio no lado correto, todos girando livremente, freios funcionais e travas bem fixadas.',
+      h:'Inspeção visual da configuração · Teste de rotação e freio', v:[] },
+    { n:8,
+      t:'Estrutura dos Pés — Colunas e Travessas',
+      s:'4 colunas 450mm + 4 travessas longitudinais 2400mm + 5 laterais 1500mm',
+      c:'Verificar a estrutura completa da base do equipamento.\n\nEspecificação (conf. BOM e plano pág. 11):\n• 4 colunas dos pés: 450×50×30mm □ (item 5)\n• 4 travessas longitudinais: 2400×50×30mm □ (item 6)\n• 5 travessas laterais: 1500×50×30mm □ (item 7)\n• 2 colunas de reforço: 230×50×30mm □ (item 8)\n• Altura total da base: 2100mm (conf. plano)\n\nRuim: Colunas faltantes, deformação >10mm em qualquer travessa ou estrutura instável.\nMéd.: Estrutura completa mas com pequenas deformações (<5mm) ou soldas irregulares sem fissuras.\nExce.: Todos os elementos presentes, dimensões corretas, estrutura rígida sem deformações, soldas uniformes.',
+      h:'Trena · Nível de bolha · Inspeção visual de toda a estrutura', v:[] },
+    { n:9,
+      t:'Chapas de Fixação — Trava da Base e Encaixe',
+      s:'2 chapas trava base 26×196×3mm + 2 chapas encaixe 75×30×3mm',
+      c:'Verificar as chapas de fixação e conexão do equipamento.\n\nComponentes:\n• 2 chapas trava da base na mesa (item 4): 26×196×3mm com rosca 5/16"\n  — Fixam a mesa à estrutura por baixo\n• 2 chapas de encaixe entre mesas (item 6): 75×30×3mm\n  — Permitem encaixar módulos de mesa entre si\n\nRuim: Chapas faltantes, furos danificados impedindo fixação, ou deformação que impede o encaixe.\nMéd.: Chapas presentes mas com leve deformação, parafusos com rosca desgastada ou encaixe com folga.\nExce.: Todas as chapas presentes e sem danos, furos de rosca íntegros, encaixe firme entre módulos.',
+      h:'Inspeção visual · Teste de encaixe entre módulos · Chave 5/16"', v:[] },
+  ],
+  es: [
+    { n:10,
+      t:'Soldas — Qualidade e Continuidade',
+      s:'Soldas contínuas, uniformes e sem descontinuidades estruturais',
+      c:'Inspecionar a qualidade de todas as soldas da estrutura.\n\nPontos críticos a verificar:\n• Solda das travessas da mesa nos trilhos principais\n• Solda das colunas dos pés nas travessas longitudinais e laterais\n• Solda das chapas de rodízio nas colunas\n• Solda das colunas de reforço\n\nRuim: Soldas com porosidade, fissuras visíveis, falta de fusão em pontos estruturais ou bordas cortantes expostas.\nMéd.: Soldas funcionais mas com respingos excessivos, interrupções pontuais (<10mm) ou irregularidades sem fissura.\nExce.: Soldas contínuas, uniformes, sem porosidade, sem fissuras, penetração adequada em todos os pontos.',
+      h:'Inspeção visual com iluminação · Verificar todos os pontos de junção', v:[] },
+    { n:11,
+      t:'Tampas de Extremidade — Pontas dos Tubos',
+      s:'Todas as pontas de tubo abertas com tampa de extremidade',
+      c:'Verificar a presença de tampas de extremidade em todas as pontas abertas dos tubos.\n\nNota importante: O plano técnico (pág. 6) especifica explicitamente:\n"Adicionar tampa de extremidade em todas as pontas de tubo abertas"\n\nPontos a verificar:\n• 4 pontas das travessas dos pés (longitudinais e laterais)\n• 2 pontas das travessas de reforço\n• 4 pontas das colunas dos pés\n• Todos os demais tubos com extremidades expostas\n\nRuim: ≥3 pontas abertas sem tampa ou risco de corte imediato.\nMéd.: 1–2 pontas sem tampa, sem risco imediato de acidente.\nExce.: 100% das pontas com tampa de extremidade instalada, sem deformações.',
+      h:'Inspeção visual de todas as extremidades de tubo', v:[] },
+    { n:12,
+      t:'Reforços da Base — Cantoneiras 45°',
+      s:'4 reforços diagonais 450×50×30mm com corte a 45°',
+      c:'Verificar os 4 reforços diagonais da base (item 10 do BOM).\n\nEspecificação:\n• Quantidade: 4 unidades\n• Seção: □ 50×30×3mm\n• Comprimento: 450mm\n• Corte: 45° nas extremidades (conf. plano pág. 17)\n• Posição: soldados diagonalmente entre colunas e travessas\n\nRuim: Reforços ausentes, corte em ângulo incorreto ou solda com fissura.\nMéd.: Reforços presentes mas com desvio no ângulo de corte ou solda irregular sem fissura.\nExce.: 4 reforços presentes, ângulo de 45° correto, soldados firmemente sem deformação.',
+      h:'Inspeção visual dos ângulos · Verificar alinhamento diagonal', v:[] },
+    { n:13,
+      t:'Colunas de Reforço — Intermediárias',
+      s:'2 colunas de reforço 230×50×30mm · posição central da base',
+      c:'Verificar as 2 colunas de reforço intermediárias (item 8 do BOM).\n\nEspecificação:\n• Quantidade: 2 unidades\n• Seção: □ 50×30×3mm\n• Comprimento: 230mm\n• Posição: centro da estrutura de base, soldadas entre travessas\n\nRuim: Colunas ausentes ou com fissura/ruptura visível.\nMéd.: Colunas presentes mas com deformação ou solda irregular sem ruptura.\nExce.: 2 colunas presentes, posicionadas centralmente, bem soldadas, sem deformações.',
+      h:'Inspeção visual e contagem · Teste de rigidez manual', v:[] },
+    { n:14,
+      t:'Chapas de Rodízio — Fixação e Integridade',
+      s:'4 chapas 200×200×3mm · furos alinhados e parafusos bem fixados',
+      c:'Verificar as 4 chapas de suporte dos rodízios (item 9 do BOM).\n\nEspecificação:\n• Quantidade: 4 unidades\n• Dimensões: 200×200×3mm (aço, epóxi preto)\n• Furos para fixação dos rodízios (conforme padrão RE.F5-150)\n• Soldadas nas colunas dos pés\n\nRuim: Chapas ausentes, dobradas >10mm ou furos danificados que impedem fixação dos rodízios.\nMéd.: Chapas presentes mas com deformação leve (<5mm) ou parafusos com rosca desgastada.\nExce.: 4 chapas presentes, planas, furos íntegros, rodízios bem fixados sem folga.',
+      h:'Inspeção visual · Aperto manual dos parafusos', v:[] },
+  ],
+  pi: [
+    { n:15,
+      t:'Pintura e Acabamento',
+      s:'Epóxi preto uniforme · peças zincadas íntegras · sem corrosão',
+      c:'Verificar o acabamento superficial de todo o equipamento.\n\nEspecificação (conf. BOM):\n• Estrutura principal: pintura epóxi preta (todos os tubos e chapas de aço)\n• Peças zincadas: chapas de ajuste de angulação (items 11 e 12) e chapas encaixe (item 6)\n\nCritérios:\nRuim: Pintura com cor diferente ao padrão, oxidação generalizada ou descascamento em >20% da superfície; peças zincadas com corrosão branca >20%.\nMéd.: Cor correta mas com descascamento pontual (<20%), riscos profundos ou início de oxidação em <5 pontos; zincagem com desgaste superficial.\nExce.: Epóxi preto uniforme sem descascamento relevante, sem oxidação visível; peças zincadas sem corrosão que comprometa a função.',
+      h:'Inspeção visual de toda a superfície', v:[] }
+  ]
+};
+
+// ── State ──
+const R = { eq: new Array(9).fill(null), es: new Array(5).fill(null), pi: new Array(1).fill(null) };
+const SM = { malo:.25, intermedio:.65, excelente:1 };
+
+// ── Ref photos per item (from PDF technical drawing) ──
+const REF_IMGS = {};  // Reference images to be added via Google Drive links (v: field)
+
+
+// ── Build items ──
+function buildItem(item, sec, idx) {
+  const key = sec+'_'+idx;
+  const refImgs = REF_IMGS[key] || [];
+  const refHtml = refImgs.length ? `
+    <div class="ref-photos">
+      <div class="ref-label">${T[LANG].refLabel}</div>
+      <div class="ref-row">${refImgs.map((src,i) => `<img class="ref-img" src="${src}" alt="ref ${i+1}" onclick="openLightbox('${src}')">`).join('')}</div>
+    </div>` : '';
+  const vchips = (item.v||[]).map(v => {
+    if (v.u) return `<a class="vchip" href="${v.u}" target="_blank" rel="noopener"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${v.n}</a>`;
+    return `<div class="vchip"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${v.n}</div>`;
+  }).join('');
+  const sugg = item.sugg ? `<div class="sugg">${item.sugg}</div>` : '';
+  return `
+  <div class="item">
+    <div class="item-hdr" onclick="toggleItem(this)">
+      <div class="item-num">${item.n}</div>
+      <div class="item-main">
+        <div class="item-title">${item.t}</div>
+        <div class="item-sub">${item.s}</div>
+      </div>
+      <div class="rating-inline" onclick="event.stopPropagation()">
+        <button class="rb malo"       onclick="rate('${sec}',${idx},'malo',this)">${S1}<span class="rb-lbl">${T[LANG].malo}</span></button>
+        <button class="rb intermedio" onclick="rate('${sec}',${idx},'intermedio',this)">${S2}<span class="rb-lbl">${T[LANG].interm}</span></button>
+        <button class="rb excelente"  onclick="rate('${sec}',${idx},'excelente',this)">${S3}<span class="rb-lbl">${T[LANG].excel}</span></button>
+      </div>
+      <div class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div>
+    </div>
+    <div class="item-detail">
+      ${refHtml}
+      <div class="crit">${item.c}</div>
+      <div class="tool"><div class="tool-lbl">${T[LANG].herramienta}</div>${item.h}</div>
+      ${vchips ? `<div class="media-row">${vchips}</div>` : ''}
+      ${sugg}
+      <div class="cmnt"><label>${T[LANG].comentarios}</label><textarea placeholder="${T[LANG].obsPlaceholder}"></textarea></div>
+      <div class="photos"><label>${T[LANG].fotos}</label>
+        <div class="pdrop" onclick="this.querySelector('input').click()">
+          <input type="file" accept="image/*,video/*" multiple onchange="previewF(this)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <div class="pdrop-txt">${T[LANG].addMedia}</div>
+        </div>
+        <div class="ppreview"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+Object.entries(ITEMS).forEach(([sec, items]) => {
+  document.getElementById('bd-'+sec).innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
+});
+
+function toggleSec(id, hdr) {
+  const bd = document.getElementById('bd-'+id);
+  const chev = hdr.querySelector('.sec-chev');
+  const open = bd.style.display !== 'none';
+  bd.style.display = open ? 'none' : 'block';
+  chev.classList.toggle('open', !open);
+}
+function toggleItem(hdr) {
+  const det = hdr.nextElementSibling;
+  const chev = hdr.querySelector('.chev');
+  det.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+function rate(sec, idx, val, btn) {
+  if (btn.classList.contains('sel')) {
+    R[sec][idx] = null;
+    btn.classList.remove('sel');
+    calcAll(); return;
+  }
+  R[sec][idx] = val;
+  btn.closest('.rating-inline').querySelectorAll('.rb').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  calcAll();
+  const currentHdr = btn.closest('.item-hdr');
+  if (currentHdr) {
+    const currentDet = currentHdr.nextElementSibling;
+    if (currentDet && currentDet.classList.contains('open')) {
+      currentDet.classList.remove('open');
+      const chev = currentHdr.querySelector('.chev');
+      if (chev) chev.classList.remove('open');
+    }
+    const nextItem = currentHdr.closest('.item').nextElementSibling;
+    if (nextItem && nextItem.classList.contains('item')) {
+      const nextHdr = nextItem.querySelector('.item-hdr');
+      const nextDet = nextItem.querySelector('.item-detail');
+      if (nextHdr && nextDet && !nextDet.classList.contains('open')) {
+        nextDet.classList.add('open');
+        const nextChev = nextHdr.querySelector('.chev');
+        if (nextChev) nextChev.classList.add('open');
+        setTimeout(() => nextHdr.scrollIntoView({behavior:'smooth', block:'nearest'}), 80);
+      }
+    }
+  }
+}
+function avg(sec) {
+  const vals = R[sec].filter(v => v !== null);
+  if (!vals.length) return null;
+  return vals.reduce((a,v) => a + SM[v], 0) / vals.length;
+}
+function setBar(id, score) {
+  const bar = document.getElementById('bar-'+id);
+  const val = document.getElementById('val-'+id);
+  const bdg = document.getElementById('sc-'+id);
+  if (score === null) {
+    bar.style.width = '0%'; val.textContent = '—'; val.style.color = '#999';
+    if (bdg) bdg.textContent = '—'; return;
+  }
+  const p = Math.round(score * 100);
+  const c = p<=40 ? 'var(--bad)' : p<=80 ? 'var(--mid)' : 'var(--ok)';
+  bar.style.width = p+'%'; bar.style.background = c;
+  val.textContent = p+'%'; val.style.color = c;
+  if (bdg) bdg.textContent = p+'%';
+}
+function calcAll() {
+  const eq = avg('eq'), es = avg('es');
+  setBar('eq', eq); setBar('es', es);
+  const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
+  document.getElementById('pFill').style.width = (done/15*100)+'%';
+  document.getElementById('pCount').textContent = done+' / 15';
+  let fin = null;
+  if (eq!==null && es!==null) fin = eq*.6 + es*.4;
+  else if (eq!==null) fin = eq*.6;
+  else if (es!==null) fin = es*.4;
+  if (fin !== null) {
+    const p = Math.round(fin*100);
+    document.getElementById('val-tot').textContent = p+'%';
+    document.getElementById('hdrVal').textContent = p+'%';
+    const vd = T[LANG].verdicts;
+    const [txt,cls] = p<=40 ? [vd.rep,'v-rep'] : p<=80 ? [vd.aj,'v-aj'] : [vd.ap,'v-ap'];
+    const v = document.getElementById('vdict');
+    v.textContent = txt; v.className = 'verdict '+cls;
+  } else {
+    document.getElementById('val-tot').textContent = '—';
+    document.getElementById('hdrVal').textContent = '—';
+    document.getElementById('vdict').textContent = '';
+  }
+}
+function previewF(input) {
+  const prev = input.closest('.photos').querySelector('.ppreview');
+  Array.from(input.files).forEach(f => {
+    if (f.type.startsWith('image/')) {
+      const r = new FileReader();
+      r.onload = e => {
+        const t = document.createElement('div'); t.className = 'pthumb';
+        t.innerHTML = '<img src="'+e.target.result+'"><button class="prm" onclick="this.parentElement.remove()">×</button>';
+        prev.appendChild(t);
+      };
+      r.readAsDataURL(f);
+    } else {
+      const sizeMB = (f.size / 1024 / 1024).toFixed(0);
+      const t = document.createElement('div'); t.className = 'pthumb video-thumb';
+      t.style.cssText = 'background:#1A1A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px';
+      t.innerHTML = '<span style="color:#FFE600;font-size:18px">▶</span><span style="color:#FFE600;font-size:7px;text-align:center;padding:0 3px;word-break:break-all">'+f.name.slice(0,12)+'</span><span style="color:#aaa;font-size:7px">'+sizeMB+'MB</span><button class="prm" onclick="this.parentElement.remove()">×</button>';
+      t._videoFile = f;
+      prev.appendChild(t);
+    }
+  });
+}
+function exportData() {
+  const d = {
+    evaluador: document.getElementById('evaluador').value,
+    fecha: document.getElementById('fecha').value,
+    sitio: document.getElementById('sitio').value,
+    ratings: R, scores: {eq: avg('eq'), es: avg('es')},
+    timestamp: new Date().toISOString()
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+  a.download = 'checklist-flowrack-4x1.5-'+(d.sitio||'eval')+'.json';
+  a.click();
+}
+function showValidationToast(msg, items) {
+  document.getElementById('valToastMsg').textContent = msg;
+  document.getElementById('valToastList').innerHTML = items.map(i => '• ' + i).join('<br>');
+  const t = document.getElementById('valToast');
+  t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 6000);
+  const firstNum = items[0]?.match(/^(\d+)\./);
+  if (firstNum) {
+    const idx = parseInt(firstNum[1]) - 1;
+    const el = document.querySelectorAll('.item')[idx];
+    if (el) { el.querySelector('.item-detail')?.classList.add('open'); el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  }
+}
+async function finalize() {
+  const t = T[LANG];
+  const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
+  if (done < 15) {
+    showValidationToast(
+      LANG==='pt' ? 'Avaliação incompleta' : 'Evaluación incompleta',
+      [LANG==='pt' ? 'Faltam '+(15-done)+' item(ns) por avaliar.' : 'Faltan '+(15-done)+' ítem(s) por evaluar.']
+    ); return;
+  }
+  const evaluadorVal = document.getElementById('evaluador').value.trim();
+  const sitioVal     = document.getElementById('sitio').value.trim();
+  const paisVal      = document.getElementById('pais').value.trim();
+  if (!evaluadorVal || !sitioVal || !paisVal) {
+    const missing = [];
+    if (!evaluadorVal) missing.push(LANG==='pt' ? 'Nome do avaliador é obrigatório.' : 'El nombre del evaluador es obligatorio.');
+    if (!sitioVal)     missing.push(LANG==='pt' ? 'Site / Operação é obrigatório.' : 'El sitio / operación es obligatorio.');
+    if (!paisVal)      missing.push(LANG==='pt' ? 'País é obrigatório.' : 'El país es obligatorio.');
+    document.getElementById('evaluador').style.borderColor = evaluadorVal ? '' : 'var(--bad)';
+    document.getElementById('sitio').style.borderColor     = sitioVal     ? '' : 'var(--bad)';
+    document.getElementById('pais').style.borderColor      = paisVal      ? '' : 'var(--bad)';
+    showValidationToast(LANG==='pt' ? 'Campos obrigatórios' : 'Campos obligatorios', missing);
+    window.scrollTo({top:0, behavior:'smooth'}); return;
+  }
+  document.getElementById('evaluador').style.borderColor = '';
+  document.getElementById('sitio').style.borderColor = '';
+  document.getElementById('pais').style.borderColor = '';
+
+  const comentarios = {};
+  document.querySelectorAll('.item').forEach((el, i) => {
+    const ta = el.querySelector('textarea');
+    if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
+  });
+
+  const allItems = document.querySelectorAll('.item');
+  const secs = [{ key:'eq', offset:0 }, { key:'es', offset:9 }, { key:'pi', offset:14 }];
+  const missing = [];
+  secs.forEach(({ key, offset }) => {
+    R[key].forEach((val, i) => {
+      if (val === null) return;
+      const el = allItems[offset + i];
+      if (!el) return;
+      const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
+      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0 || el.querySelectorAll('.ppreview .video-thumb').length > 0;
+      if (!hasComment && !hasPhoto) {
+        const title = el.querySelector('.item-title')?.textContent || ('Item ' + (offset+i+1));
+        missing.push((offset+i+1) + '. ' + title);
+      }
+    });
+  });
+  if (missing.length > 0) {
+    showValidationToast(
+      LANG==='pt' ? 'Todos os itens precisam de comentário ou foto:' : 'Todos los ítems requieren comentario o foto:',
+      missing
+    ); return;
+  }
+
+  const eq = avg('eq'), es = avg('es');
+  const fin = eq !== null && es !== null ? eq*.6 + es*.4 : eq !== null ? eq*.6 : es*.4;
+  const p = Math.round(fin * 100);
+  const vd = T[LANG].verdicts;
+  const veredicto = p<=40 ? vd.rep : p<=80 ? vd.aj : vd.ap;
+  const evaluador = document.getElementById('evaluador').value || null;
+  const sitio     = document.getElementById('sitio').value || null;
+
+  const payload = {
+    evaluador, fecha: document.getElementById('fecha').value || null,
+    sitio, pais: document.getElementById('pais').value || null,
+    idioma: LANG,
+    score_eq: eq !== null ? Math.round(eq*100) : null,
+    score_es: es !== null ? Math.round(es*100) : null,
+    score_final: p, veredicto,
+    ratings: { eq: R.eq, es: R.es, pi: R.pi },
+    comentarios, fotos: [],
+    equipo_tipo: 'Flowrack 4x1,5m',
+    tipo_avaliacao: tipoAvaliacao,
+    fornecedor: fornecedorNome || null,
+    email_fornecedor: emailFornecedor || null
+  };
+
+  const btn = document.querySelector('[data-i18n="finalizar"]');
+  const originalText = btn.textContent;
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+
+  try {
+    const uploadQueue = [];
+    const allItemEls  = document.querySelectorAll('.item');
+    const secDefs = [{ key:'eq', offset:0 }, { key:'es', offset:9 }, { key:'pi', offset:14 }];
+    secDefs.forEach(({ key, offset }) => {
+      R[key].forEach((val, idx) => {
+        if (val === null) return;
+        const el = allItemEls[offset + idx];
+        if (!el) return;
+        const itemTitle  = el.querySelector('.item-title')?.textContent?.trim() || ('Item ' + (offset+idx+1));
+        const itemNum    = offset + idx + 1;
+        const itemRating = val;
+        el.querySelectorAll('.ppreview img').forEach(img => {
+          uploadQueue.push({ type:'image', src:img.src, itemTitle, itemNum, itemRating });
+        });
+        el.querySelectorAll('.ppreview .video-thumb').forEach(thumb => {
+          if (thumb._videoFile) uploadQueue.push({ type:'video', file:thumb._videoFile, itemTitle, itemNum, itemRating });
+        });
+      });
+    });
+
+    if (uploadQueue.length > 0) {
+      btn.textContent = (LANG==='pt' ? 'Enviando mídia (0/' : 'Subiendo archivos (0/') + uploadQueue.length + ')...';
+      let uploaded = 0;
+      const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
+      const uploadPromises = uploadQueue.map(async (item, i) => {
+        try {
+          let publicUrl = null;
+          if (item.type === 'image') {
+            const src = item.src;
+            if (!src.startsWith('data:')) return;
+            const arr = src.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const ext  = mime.split('/')[1] || 'jpg';
+            const bstr = atob(arr[1]);
+            const u8arr = new Uint8Array(bstr.length);
+            for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
+            const blob = new Blob([u8arr], { type: mime });
+            const path = safeSitio + '/' + Date.now() + '_img' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          } else {
+            const f = item.file;
+            if (f.size > 50 * 1024 * 1024) return;
+            const ext  = f.name.split('.').pop() || 'mp4';
+            const path = safeSitio + '/' + Date.now() + '_vid' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, f, { contentType: f.type, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          }
+          if (publicUrl) payload.fotos.push({ url: publicUrl, item: item.itemTitle, num: item.itemNum, rating: item.itemRating, type: item.type });
+          uploaded++;
+          btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + uploadQueue.length + ')...';
+        } catch(e) { console.warn('Upload failed:', e); }
+      });
+      await Promise.all(uploadPromises);
+    }
+
+    btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
+    const { error } = await _sb.from('evaluaciones').insert([payload]);
+    if (error) throw error;
+
+    if (tipoAvaliacao === 'prototipo' && p >= NOTA_CORTE_PROTOTIPO) {
+      try {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email: NOTIFICATION_EMAILS.join(','),
+          reply_to: evaluador || '',
+          subject: 'MTM | Prototipo Aprobado — ' + payload.equipo_tipo + ' | ' + (payload.fornecedor || 'N/A'),
+          equipo_tipo: payload.equipo_tipo,
+          fornecedor:  payload.fornecedor  || 'N/A',
+          score_final: p + '%',
+          score_eq:    payload.score_eq    !== null ? payload.score_eq + '%' : 'N/A',
+          score_es:    payload.score_es    !== null ? payload.score_es + '%' : 'N/A',
+          evaluador:   evaluador            || 'N/A',
+          sitio:       sitio                || 'N/A',
+          pais:        payload.pais         || 'N/A',
+          fecha:       payload.fecha        || new Date().toLocaleDateString('es'),
+          spec_url:    SPEC_URL
+        });
+      } catch(emailErr) { console.warn('Email error:', emailErr); }
+    }
+
+    btn.textContent = '✓ Enviado!'; btn.style.background = 'var(--ok)';
+    setTimeout(() => {
+      const params = new URLSearchParams({
+        lang: LANG, score: p, veredicto,
+        evaluador: evaluador || '', sitio: sitio || '',
+        tipo: tipoAvaliacao || '', fornecedor: fornecedorNome || ''
+      });
+      window.location.href = 'obrigado.html?' + params.toString();
+    }, 900);
+  } catch(err) {
+    console.error(err);
+    btn.textContent = LANG==='pt' ? 'Erro ao salvar' : 'Error al guardar';
+    btn.style.background = 'var(--bad)';
+    setTimeout(() => { btn.textContent = originalText; btn.style.background = ''; btn.disabled = false; }, 3000);
+  }
+}
+
+function switchLang(lang) {
+  LANG = lang;
+  document.getElementById('btn-pt').classList.toggle('act', lang==='pt');
+  document.getElementById('btn-es').classList.toggle('act', lang==='es');
+  const t = T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t[k] !== undefined) el.innerHTML = t[k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const k = el.getAttribute('data-i18n-ph');
+    if (t[k] !== undefined) el.placeholder = t[k];
+  });
+  Object.entries(ITEMS).forEach(([sec, items]) => {
+    const bd = document.getElementById('bd-'+sec);
+    bd.innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
+    R[sec].forEach((val,i) => {
+      if (val !== null) {
+        const btns = bd.querySelectorAll('.item');
+        if (btns[i]) {
+          const btn = btns[i].querySelector('.rb.'+val);
+          if (btn) btn.classList.add('sel');
+        }
+      }
+    });
+  });
+  document.title = t.title + ' — Mercado Libre';
+}
+
+document.getElementById('fecha').valueAsDate = new Date();
+function openLightbox(src) {
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lb').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lb').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+document.getElementById('fornecedor-input')?.addEventListener('input', checkIniciar);
+document.getElementById('email-fornecedor-input')?.addEventListener('input', checkIniciar);
+</script>
+</body>
+</html>
