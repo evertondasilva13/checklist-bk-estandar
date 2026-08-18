@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flowrack 4x1,5m — Mercado Libre</title>
+<title>Flowrack Volumoso 4mx1,5m — Mercado Libre</title>
 <style>
   :root {
     --y: #FFE600; --yd: #E6CF00;
@@ -164,7 +164,7 @@
   <div class="logo">
     <div class="logo-icon">ML</div>
     <div>
-      <div class="logo-text" data-i18n="title">Flowrack 4x1,5m</div>
+      <div class="logo-text" data-i18n="title">Flowrack Volumoso 4mx1,5m</div>
       <div class="logo-sub" data-i18n="subtitle">Avaliação de Equipamentos</div>
     </div>
   </div>
@@ -317,7 +317,7 @@ const S3 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor">
 let LANG = 'pt';
 const T = {
   pt: {
-    title:'Flowrack 4x1,5m', subtitle:'Avaliação de Equipamentos',
+    title:'Flowrack Volumoso 4mx1,5m', subtitle:'Avaliação de Equipamentos',
     infoTitle:'Informações da Avaliação', evaluador:'Avaliador', fecha:'Data',
     sitio:'Site / Armazém', pais:'País', itensEval:'Ítens avaliados',
     secEq:'Equipamento / Componentes', secEs:'Estrutura / Soldas', secPi:'Pintura / Acabamento',
@@ -338,7 +338,7 @@ const T = {
     tipoMassDesc:'Entrega de lote com fornecedor já homologado'
   },
   es: {
-    title:'Flowrack 4x1,5m', subtitle:'Evaluación de Equipamiento',
+    title:'Flowrack Volumoso 4mx1,5m', subtitle:'Evaluación de Equipamiento',
     infoTitle:'Información de la Evaluación', evaluador:'Evaluador', fecha:'Fecha',
     sitio:'Sitio / Almacén', pais:'País', itensEval:'Ítems evaluados',
     secEq:'Equipamiento / Componentes', secEs:'Estructura / Soldaduras', secPi:'Pintura / Acabado',
@@ -621,7 +621,7 @@ async function finalize() {
   const fin=eq!==null&&es!==null?eq*.6+es*.4:eq!==null?eq*.6:es*.4;
   const p=Math.round(fin*100), vd=T[LANG].verdicts;
   const veredicto=p<=40?vd.rep:p<=80?vd.aj:vd.ap;
-  const payload={evaluador:ev,fecha:document.getElementById('fecha').value||null,sitio:st,pais:pa,idioma:LANG,score_eq:eq!==null?Math.round(eq*100):null,score_es:es!==null?Math.round(es*100):null,score_final:p,veredicto,ratings:{eq:R.eq,es:R.es,pi:R.pi},comentarios,fotos:[],equipo_tipo:'Flowrack 4x1,5m',tipo_avaliacao:tipoAvaliacao,fornecedor:fornecedorNome||null,email_fornecedor:emailFornecedor||null};
+  const payload={evaluador:ev,fecha:document.getElementById('fecha').value||null,sitio:st,pais:pa,idioma:LANG,score_eq:eq!==null?Math.round(eq*100):null,score_es:es!==null?Math.round(es*100):null,score_final:p,veredicto,ratings:{eq:R.eq,es:R.es,pi:R.pi},comentarios,fotos:[],equipo_tipo:'Flowrack Volumoso 4mx1,5m',tipo_avaliacao:tipoAvaliacao,fornecedor:fornecedorNome||null,email_fornecedor:emailFornecedor||null};
   const btn=document.querySelector('[data-i18n="finalizar"]'), orig=btn.textContent;
   btn.textContent='Enviando...'; btn.disabled=true;
   try {
