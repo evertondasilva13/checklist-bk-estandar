@@ -774,7 +774,7 @@ function showValidationToast(msg, items) {
   }
 }
 
-async async function finalize() {
+async function finalize() {
   const t = T[LANG];
   const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
   if (done < 11) {
