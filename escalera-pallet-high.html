@@ -816,29 +816,7 @@ async function finalize() {
     { key:'es', offset:6 },
     { key:'pi', offset:9 }
   ];
-  const missingMedia = [];
-  secs.forEach(({ key, offset }) => {
-    R[key].forEach((val, i) => {
-      if (val === null) return;
-      const el = allItems[offset + i];
-      if (!el) return;
-      const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
-      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0 || el.querySelectorAll('.ppreview .video-thumb').length > 0;
-      if (!hasComment && !hasPhoto) {
-        const title = el.querySelector('.item-title')?.textContent || ('Item ' + (offset+i+1));
-        missingMedia.push((offset+i+1) + '. ' + title);
-      }
-    });
-  });
-  if (missingMedia.length > 0) {
-    showValidationToast(
-      LANG==='pt'
-        ? 'Todos os itens precisam de comentário ou foto:'
-        : 'Todos los ítems requieren comentario o foto:',
-      missingMedia
-    );
-    return;
-  }
+
 
   const eq = avg('eq'), es = avg('es'), pi = avg('pi');
   const fin = (eq||0)*.6 + (es||0)*.3 + (pi||0)*.1;
