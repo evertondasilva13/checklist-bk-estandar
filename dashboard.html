@@ -271,6 +271,14 @@
       <span class="etab-label">Flowrack Volumoso 2mx0,8m</span>
       <span class="etab-count" id="cntFlowVol">0</span>
     </button>
+    <button class="etab" id="tabFlowInd" onclick="setTab('Flowrack Indução Service Center')">
+      <span class="etab-label">Flowrack Indução Service Center</span>
+      <span class="etab-count" id="cntFlowInd">0</span>
+    </button>
+    <button class="etab" id="tabMesaBuf" onclick="setTab('Mesa Buffer Indução Service Center')">
+      <span class="etab-label">Mesa Buffer Indução Service Center</span>
+      <span class="etab-count" id="cntMesaBuf">0</span>
+    </button>
     <button class="etab" id="tabBand" onclick="setTab('Bandeja Aramada BK')">
       <span class="etab-label">Bandeja Aramada</span>
       <span class="etab-count" id="cntBand">0</span>
@@ -383,6 +391,8 @@
         <a class="ck-item" href="baker-fragiles-2.html" target="_blank">Baker de Fragiles 2.0</a>
         <a class="ck-item" href="flowrack-4x15.html" target="_blank">Flowrack Volumoso 4mx1,5m</a>
         <a class="ck-item" href="flowrack-2x08.html" target="_blank">Flowrack Volumoso 2mx0,8m</a>
+        <a class="ck-item" href="flowrack-inducao-svc.html" target="_blank">Flowrack Indução Service Center</a>
+        <a class="ck-item" href="mesa-buffer-inducao.html" target="_blank">Mesa Buffer Indução Service Center</a>
       </div>
       <button class="ck-close" onclick="document.getElementById('modal-checklist').classList.remove('open')">Fechar</button>
     </div>
@@ -483,6 +493,8 @@ function updateTabCounts(paisFilter) {
   document.getElementById('cntFlow').textContent  = cntFor('Flowrack 3x2m');
   document.getElementById('cntFlow415').textContent = cntFor('Flowrack Volumoso 4mx1,5m');
   document.getElementById('cntFlowVol').textContent = cntFor('Flowrack Volumoso 2mx0,8m');
+  document.getElementById('cntFlowInd').textContent = cntFor('Flowrack Indução Service Center');
+  document.getElementById('cntMesaBuf').textContent = cntFor('Mesa Buffer Indução Service Center');
   document.getElementById('cntBand').textContent  = cntFor('Bandeja Aramada BK');
   document.getElementById('cntTest').textContent  = cntFor('Testeira RSC');
   document.getElementById('cntBrsc').textContent  = cntFor('Bandeja RSC');
