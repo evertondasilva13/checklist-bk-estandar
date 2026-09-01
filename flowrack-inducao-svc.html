@@ -582,7 +582,7 @@ function showValidationToast(msg, items) {
 
 async function finalize() {
   const done=['eq','es','pi'].reduce((a,s)=>a+R[s].filter(v=>v!==null).length,0);
-  if(done<15){showValidationToast(LANG==='pt'?'Avaliação incompleta':'Evaluación incompleta',[LANG==='pt'?'Faltam '+(15-done)+' item(ns) por avaliar.':'Faltan '+(15-done)+' ítem(s) por evaluar.']);return;}
+  if(done<11){showValidationToast(LANG==='pt'?'Avaliação incompleta':'Evaluación incompleta',[LANG==='pt'?'Faltam '+(11-done)+' item(ns) por avaliar.':'Faltan '+(11-done)+' ítem(s) por evaluar.']);return;}
   const ev=document.getElementById('evaluador').value.trim(), st=document.getElementById('sitio').value.trim(), pa=document.getElementById('pais').value.trim();
   if(!ev||!st||!pa){
     const miss=[];
