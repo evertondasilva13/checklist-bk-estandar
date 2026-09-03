@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baker de Fragiles 2.0 — Mercado Libre</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root {
+    --y: #FFE600; --yd: #E6CF00;
+    --dk: #1A1A1A; --g: #666; --lt: #F5F5F5; --br: #E0E0E0;
+    --bad: #E8303F; --mid: #FF7733; --ok: #00A650;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--lt); color: var(--dk); }
+
+  header { background: var(--y); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 58px; box-shadow: 0 2px 6px rgba(0,0,0,.15); position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 34px; height: 34px; background: var(--dk); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--y); font-weight: 900; font-size: 13px; }
+  .logo-text { font-size: 16px; font-weight: 800; color: var(--dk); }
+  .logo-sub { font-size: 11px; color: #555; }
+
+  .lang-toggle { display:flex; gap:4px; align-items:center; }
+  .lang-toggle button { background:transparent; border:2px solid var(--dk); color:var(--dk); padding:3px 10px; border-radius:14px; font-size:11px; font-weight:800; cursor:pointer; transition:all .15s; }
+  .lang-toggle button.act { background:var(--dk); color:var(--y); }
+  .hdr-score { background: var(--dk); color: var(--y); padding: 6px 16px; border-radius: 18px; font-size: 13px; font-weight: 700; }
+
+  main { max-width: 860px; margin: 0 auto; padding: 18px 12px 80px; }
+
+  .card { background: white; border-radius: 10px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .card-top { border-top: 4px solid var(--y); }
+  .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 13px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:540px){.form-grid{grid-template-columns:1fr}}
+  .field label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 4px; }
+  .field input, .field select { width: 100%; border: 1.5px solid var(--br); border-radius: 7px; padding: 8px 11px; font-size: 13px; outline: none; transition: border-color .2s; background: white; }
+  .field input:focus, .field select:focus { border-color: var(--dk); }
+
+  .prog-wrap { display: flex; align-items: center; gap: 12px; }
+  .prog-wrap span { font-size: 12px; font-weight: 600; min-width: 120px; }
+  .prog-track { flex: 1; height: 7px; background: var(--br); border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--dk); border-radius: 4px; transition: width .4s; width: 0%; }
+  .prog-count { font-size: 12px; font-weight: 700; min-width: 44px; text-align: right; }
+
+  .section { background: white; border-radius: 10px; margin-bottom: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .sec-hdr { background: var(--dk); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .sec-hdr h3 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+  .sec-badge { background: rgba(255,230,0,.18); color: var(--y); padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .sec-weight { font-size: 10px; opacity: .65; }
+  .sec-score { background: var(--y); color: var(--dk); padding: 3px 11px; border-radius: 11px; font-size: 11px; font-weight: 700; min-width: 48px; text-align: center; }
+  .sec-chev { transition: transform .2s; }
+  .sec-chev.open { transform: rotate(180deg); }
+
+  .item { border-bottom: 1px solid var(--br); }
+  .item:last-child { border-bottom: none; }
+
+  .item-hdr { padding: 11px 14px; display: flex; align-items: center; gap: 9px; cursor: pointer; transition: background .12s; }
+  .item-hdr:hover { background: #f9f9f9; }
+  .item-num { background: var(--y); color: var(--dk); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; flex-shrink: 0; }
+  .item-main { flex: 1; min-width: 0; }
+  .item-title { font-size: 13px; font-weight: 600; }
+  .item-sub { font-size: 11px; color: var(--g); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* RATING — compact, inline, always visible */
+  .rating-inline { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
+  .rb {
+    border: 1.5px solid var(--br); background: white;
+    padding: 5px 7px; border-radius: 7px; cursor: pointer;
+    transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    min-width: 46px; color: #C0C0C0;
+  }
+  .rb:hover { border-color: #999; color: #777; }
+  .rb-lbl { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: inherit; line-height: 1; }
+  .rb.malo.sel        { color: var(--bad);  border-color: var(--bad);  background: #fff0f1; }
+  .rb.intermedio.sel  { color: var(--mid);  border-color: var(--mid);  background: #fff5ee; }
+  .rb.excelente.sel   { color: var(--ok);   border-color: var(--ok);   background: #edfff5; }
+  .rb.malo:not(.sel):hover        { color: var(--bad); border-color: #f9b; }
+  .rb.intermedio:not(.sel):hover  { color: var(--mid); border-color: #fdb; }
+  .rb.excelente:not(.sel):hover   { color: var(--ok);  border-color: #9db; }
+
+  .chev { flex-shrink: 0; color: var(--g); transition: transform .2s; }
+  .chev.open { transform: rotate(180deg); }
+
+  .item-detail { display: none; padding: 0 14px 16px 46px; background: #fafafa; border-top: 1px dashed var(--br); }
+  .item-detail.open { display: block; }
+
+  .crit { background: #efefef; border-left: 3px solid var(--dk); border-radius: 0 6px 6px 0; padding: 10px 12px; margin: 10px 0; font-size: 12px; color: #222; line-height: 1.6; white-space: pre-line; }
+  .tool { background: #FFFCE0; border-left: 3px solid var(--yd); border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 12px; color: #4a3e00; line-height: 1.5; }
+  .tool-lbl { font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; color: #7a6500; }
+  .media-row { display: flex; gap: 7px; margin: 8px 0; flex-wrap: wrap; }
+  .vchip { background: var(--dk); color: var(--y); padding: 4px 10px; border-radius: 14px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; text-decoration: none; cursor: pointer; }
+  a.vchip:hover { background: #333; }
+  .ref-photos { margin: 10px 0 6px; }
+  .ref-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); margin-bottom: 6px; }
+  .ref-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ref-img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid var(--br); cursor: zoom-in; transition: border-color .15s; }
+  .ref-img:hover { border-color: var(--dk); }
+  .lb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:999; align-items:center; justify-content:center; cursor:zoom-out; }
+  .lb-overlay.open { display:flex; }
+  .lb-img { max-width:90vw; max-height:90vh; border-radius:8px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+
+  /* Validation toast */
+  .val-toast { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1A1A1A; color:white; border-radius:12px; padding:14px 20px; max-width:420px; width:calc(100% - 32px); z-index:200; box-shadow:0 4px 20px rgba(0,0,0,.25); }
+  .val-toast.show { display:block; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+  .val-toast-hdr { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--y); margin-bottom:6px; }
+  .val-toast-list { font-size:12px; color:#ddd; line-height:1.7; }
+  .val-toast-close { margin-left:auto; background:none; border:none; color:#aaa; cursor:pointer; font-size:18px; line-height:1; padding:0 2px; }
+  .val-toast-close:hover { color:white; }
+  .sugg { background: #F5F0FF; border-left: 3px solid #8B6FD4; border-radius: 0 6px 6px 0; padding: 8px 12px; margin: 7px 0; font-size: 11.5px; color: #3D2A7A; white-space: pre-line; line-height: 1.5; }
+  .cmnt { margin-top: 9px; }
+  .cmnt label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 4px; }
+  .cmnt textarea { width: 100%; border: 1.5px solid var(--br); border-radius: 6px; padding: 8px 10px; font-size: 12px; resize: vertical; min-height: 58px; outline: none; font-family: inherit; transition: border-color .2s; }
+  .cmnt textarea:focus { border-color: var(--dk); }
+  .photos { margin-top: 9px; }
+  .photos label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--g); display: block; margin-bottom: 5px; }
+  .pdrop { border: 2px dashed var(--br); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all .2s; background: white; }
+  .pdrop:hover { border-color: var(--dk); background: #f8f8f8; }
+  .pdrop input { display: none; }
+  .pdrop-txt { font-size: 11px; color: var(--g); margin-top: 4px; }
+  .ppreview { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+  .pthumb { position: relative; width: 64px; height: 64px; border-radius: 6px; overflow: hidden; border: 2px solid var(--br); }
+  .pthumb img { width: 100%; height: 100%; object-fit: cover; }
+  .prm { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,.55); color: white; border: none; border-radius: 50%; width: 15px; height: 15px; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; }
+
+  .score-panel { background: white; border-radius: 10px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border-top: 4px solid var(--y); }
+  .score-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .srows { display: flex; flex-direction: column; gap: 10px; }
+  .srow { display: flex; align-items: center; gap: 9px; }
+  .srow-lbl { font-size: 12px; font-weight: 600; min-width: 158px; }
+  .sbar-wrap { flex: 1; height: 9px; background: var(--br); border-radius: 5px; overflow: hidden; }
+  .sbar { height: 100%; border-radius: 5px; transition: width .5s, background .3s; background: var(--dk); width: 0%; }
+  .sval { min-width: 42px; text-align: right; font-size: 13px; font-weight: 700; }
+  .sdiv { border: none; border-top: 1px solid var(--br); margin: 5px 0; }
+  .stotal { display: flex; align-items: center; gap: 9px; background: var(--dk); border-radius: 8px; padding: 13px 15px; margin-top: 5px; }
+  .stotal-lbl { font-size: 13px; font-weight: 700; color: white; flex: 1; }
+  .stotal-val { font-size: 21px; font-weight: 900; color: var(--y); }
+  .verdict { font-size: 11px; font-weight: 700; padding: 3px 11px; border-radius: 14px; margin-left: 5px; }
+  .v-rep { background: var(--bad); color: white; }
+  .v-ev  { background: var(--mid); color: white; }
+  .v-aj  { background: #D07800; color: white; }
+  .v-ap  { background: var(--ok);  color: white; }
+  .scale-note { margin-top: 12px; font-size: 11px; color: var(--g); line-height: 1.7; }
+
+  .actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+  .btn { padding: 10px 22px; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all .15s; }
+  .btn-outline { background: white; color: var(--dk); border: 2px solid var(--dk); }
+  .btn-outline:hover { background: #f0f0f0; }
+  .btn-y { background: var(--y); color: var(--dk); }
+  .btn-y:hover { background: var(--yd); }
+  .btn-dk { background: var(--dk); color: var(--y); }
+  .btn-dk:hover { background: #333; }
+  @media print { header{position:relative} .btn{display:none} .item-detail{display:block!important} .pdrop{display:none} }
+
+/* ── Tipo Modal ── */
+#modal-tipo { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:2000; display:flex; align-items:center; justify-content:center; }
+.modal-box { background:var(--lt); border-radius:14px; padding:2rem 2rem 1.5rem; max-width:440px; width:92%; text-align:center; border:2px solid var(--br); }
+.modal-box h2 { margin:0 0 .4rem; font-size:1.25rem; color:var(--dk); }
+.modal-box p  { margin:0 0 1.4rem; font-size:.9rem; color:var(--g); }
+.tipo-btns { display:flex; gap:.9rem; margin-bottom:1.4rem; }
+.tipo-btn { flex:1; padding:1.1rem .5rem; border:2px solid var(--br); border-radius:10px; background:#fff; cursor:pointer; font-size:.95rem; font-weight:600; color:var(--dk); transition:all .18s; }
+.tipo-btn:hover { border-color:#bbb; background:var(--lt); }
+.tipo-btn.sel { border-color:var(--y); background:var(--y); color:var(--dk); }
+.tipo-btn .tipo-icon { font-size:1.8rem; display:block; margin-bottom:.35rem; }
+.tipo-desc { display:block; font-size:.73rem; font-weight:400; color:var(--g); margin-top:.3rem; line-height:1.3; }
+.tipo-btn.sel .tipo-desc { color:var(--dk); opacity:.75; }
+.modal-fornecedor { text-align:left; margin-bottom:1.2rem; }
+.modal-fornecedor label { display:block; font-size:.82rem; font-weight:600; color:var(--g); margin-bottom:.3rem; }
+.modal-fornecedor input { width:100%; box-sizing:border-box; padding:.55rem .75rem; border:1.5px solid var(--br); border-radius:7px; font-size:.92rem; background:#fff; color:var(--dk); }
+.modal-fornecedor input:focus { outline:none; border-color:var(--dk); }
+#btn-iniciar { width:100%; padding:.8rem; background:var(--dk); color:var(--y); border:none; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; opacity:.4; transition:opacity .2s; }
+#btn-iniciar:not(:disabled) { opacity:1; }
+#btn-iniciar:not(:disabled):hover { background:#333; }
+
+
+  #supplier-banner { display:none; background:#1A1A1A; color:#FFE600; padding:9px 20px; font-size:13px; font-weight:700; position:sticky; top:58px; z-index:90; gap:14px; align-items:center; flex-wrap:wrap; border-bottom:3px solid #FFE600; }
+  #supplier-banner.visible { display:flex; }
+  #supplier-banner .sb-chip { background:#FFE600; color:#1A1A1A; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:800; }
+  #supplier-banner .sb-sep { opacity:.4; margin:0 2px; }
+  #supplier-banner .sb-email { opacity:.75; font-size:12px; font-weight:400; }
+</style>
+<!-- Validation toast -->
+<div class="val-toast" id="valToast">
+  <div class="val-toast-hdr">
+    <span>⚠️</span>
+    <span id="valToastMsg"></span>
+    <button class="val-toast-close" onclick="document.getElementById('valToast').classList.remove('show')">×</button>
+  </div>
+  <div class="val-toast-list" id="valToastList"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">ML</div>
+    <div>
+      <div class="logo-text" data-i18n="title">Baker de Fragiles 2.0</div>
+      <div class="logo-sub" data-i18n="subtitle">Evaluación de Equipamiento</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="lang-toggle">
+      <button id="btn-pt" onclick="switchLang('pt')">PT</button>
+      <button id="btn-es" onclick="switchLang('es')" class="act">ES</button>
+    </div>
+    <div class="hdr-score">Nota: <span id="hdrVal">—</span></div>
+  </div>
+</header>
+
+<div id="supplier-banner">
+  <span class="sb-chip" id="sbTipo"></span>
+  <span class="sb-sep">|</span>
+  <span id="sbFornec"></span>
+  <span class="sb-sep">·</span>
+  <span class="sb-email" id="sbEmail"></span>
+</div>
+
+
+<div id="modal-tipo">
+  <div class="modal-box">
+    <h2 data-i18n="modalTipoTitle">Tipo de Avaliação</h2>
+    <p data-i18n="modalTipoDesc">Selecione antes de iniciar a inspeção</p>
+    <div class="tipo-btns">
+      <button class="tipo-btn" id="btn-tipo-proto" onclick="setTipo('prototipo')">
+        <span class="tipo-icon">🧪</span>
+        <span data-i18n="tipoProto">Protótipo</span>
+        <span class="tipo-desc" data-i18n="tipoProtoDesc">Novo equipamento de um novo fornecedor</span>
+      </button>
+      <button class="tipo-btn" id="btn-tipo-mass" onclick="setTipo('massivo')">
+        <span class="tipo-icon">📦</span>
+        <span data-i18n="tipoMass">Entrega Massiva</span>
+        <span class="tipo-desc" data-i18n="tipoMassDesc">Entrega de lote com fornecedor já homologado</span>
+      </button>
+    </div>
+    <div class="modal-fornecedor">
+      <label data-i18n="fornecedorLabel">Nome do Fornecedor <span style="color:#E8303F;font-weight:700;">*</span></label>
+      <input type="text" id="fornecedor-input" data-i18n-ph="fornecedorPh" placeholder="Ex: Empresa XYZ Ltda">
+    </div>
+    <div class="modal-fornecedor">
+      <label data-i18n="emailFornecedorLabel">E-mail do Fornecedor <span style="color:#E8303F;font-weight:700;">*</span></label>
+      <input type="email" id="email-fornecedor-input" data-i18n-ph="emailFornecedorPh" placeholder="Ex: contato@fornecedor.com">
+    </div>
+    <button id="btn-iniciar" disabled onclick="iniciarAvaliacao()" data-i18n="iniciarAval">Iniciar Avaliação</button>
+  </div>
+</div>
+
+
+<main>
+
+<div class="card card-top">
+  <h2 data-i18n="infoTitle">Información de la Evaluación</h2>
+  <div class="form-grid">
+    <div class="field"><label data-i18n="evaluador">Evaluador</label><input type="text" id="evaluador" data-i18n-ph="evaluadorPh" placeholder="Tu nombre completo"></div>
+    <div class="field"><label data-i18n="fecha">Fecha</label><input type="date" id="fecha"></div>
+    <div class="field"><label data-i18n="sitio">Sitio / Almacén</label><input type="text" id="sitio" data-i18n-ph="sitioPh" placeholder="Ej: CD São Paulo"></div>
+    <div class="field"><label data-i18n="pais">País</label>
+      <select id="pais">
+        <option value="">— Seleccionar —</option>
+        <option value="MLB">MLB — Brasil</option>
+        <option value="MLA">MLA — Argentina</option>
+        <option value="MLM">MLM — México</option>
+        <option value="MLC">MLC — Chile</option>
+        <option value="MCO">MCO — Colombia</option>
+        <option value="MLU">MLU — Uruguay</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="prog-wrap">
+    <span data-i18n="itensEval">Ítems evaluados</span>
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <div class="prog-count" id="pCount">0 / 14</div>
+  </div>
+</div>
+
+<!-- EQUIPO ESTÁNDAR -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('eq',this)">
+    <h3><span data-i18n="secEq">Equipo Estándar</span> <span class="sec-badge">8 <span data-i18n="items">ítems</span></span> <span class="sec-weight">· 60%</span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-eq">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-eq">
+    <!-- items injected by JS -->
+  </div>
+</div>
+
+<!-- ESTRUCTURA -->
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec('es',this)">
+    <h3><span data-i18n="secEs">Estructura</span> <span class="sec-badge">5 <span data-i18n="items2">ítems</span></span> <span class="sec-weight">· 40%</span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-es">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-es"></div>
+</div>
+
+<!-- PINTURA -->
+<div class="section">
+  <div class="sec-hdr" style="background:#333" onclick="toggleSec('pi',this)">
+    <h3><span data-i18n="secPi">Pintura</span> <span class="sec-badge">1 <span data-i18n="item1">ítem</span></span> <span class="sec-weight">· <span data-i18n="referencia">Referencia</span></span></h3>
+    <div style="display:flex;align-items:center;gap:7px">
+      <div class="sec-score" id="sc-pi">—</div>
+      <svg class="sec-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div id="bd-pi"></div>
+</div>
+
+<!-- SCORE -->
+<div class="score-panel">
+  <h3 data-i18n="resultado">Resultado de la Evaluación</h3>
+  <div class="srows">
+    <div class="srow"><div class="srow-lbl" data-i18n="lblEq">Equipo Estándar (60%)</div><div class="sbar-wrap"><div class="sbar" id="bar-eq"></div></div><div class="sval" id="val-eq">—</div></div>
+    <div class="srow"><div class="srow-lbl" data-i18n="lblEs">Estructura (40%)</div><div class="sbar-wrap"><div class="sbar" id="bar-es"></div></div><div class="sval" id="val-es">—</div></div>
+    <hr class="sdiv">
+    <div class="stotal">
+      <div class="stotal-lbl" data-i18n="evalFinal">Evaluación Final</div>
+      <div class="stotal-val" id="val-tot">—</div>
+      <div class="verdict" id="vdict"></div>
+    </div>
+  </div>
+  <div class="scale-note" data-i18n="scaleNote">0%–40% Reprobado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprobado</div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-dk" onclick="finalize()" data-i18n="finalizar">Finalizar evaluación</button>
+</div>
+
+</main>
+<div class="lb-overlay" id="lb" onclick="closeLightbox()"><img class="lb-img" id="lbImg" src="" alt=""></div>
+
+<script>
+
+// ── Tipo de Avaliação ──
+let tipoAvaliacao = null;
+let fornecedorNome = '';
+let emailFornecedor = '';
+const NOTA_CORTE_PROTOTIPO = 95;
+
+// ── EmailJS config ──
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // Account → API Keys
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // Email Services → Service ID
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // Email Templates → Template ID
+const NOTIFICATION_EMAILS = ['everton.dasilva@mercadolivre.com'];
+const SPEC_URL = 'https://drive.google.com/file/d/1ZDdLnTc942F6seNIJY_MAmbp13gEs1H4/view?usp=drive_link';
+
+function setTipo(tipo) {
+  tipoAvaliacao = tipo;
+  document.getElementById('btn-tipo-proto').classList.toggle('sel', tipo === 'prototipo');
+  document.getElementById('btn-tipo-mass').classList.toggle('sel', tipo === 'massivo');
+  checkIniciar();
+}
+
+function checkIniciar() {
+  const okTipo   = !!tipoAvaliacao;
+  const okFornec = (document.getElementById('fornecedor-input')?.value||'').trim().length > 0;
+  const okEmail  = (document.getElementById('email-fornecedor-input')?.value||'').trim().length > 0;
+  document.getElementById('btn-iniciar').disabled = !(okTipo && okFornec && okEmail);
+}
+function iniciarAvaliacao() {
+  fornecedorNome = (document.getElementById('fornecedor-input').value || '').trim();
+  emailFornecedor = (document.getElementById('email-fornecedor-input').value || '').trim();
+  document.getElementById('modal-tipo').style.display = 'none';
+  document.getElementById("sbTipo").textContent = tipoAvaliacao === "prototipo" ? "PROTÓTIPO" : "MASSIVO";
+  document.getElementById("sbFornec").textContent = fornecedorNome || "";
+  document.getElementById("sbEmail").textContent  = emailFornecedor || "";
+  document.getElementById("supplier-banner").classList.add("visible");
+
+}
+
+
+// ── Supabase ──
+const _sb = supabase.createClient('https://amdaounmybtrcpkqfcgx.supabase.co', 'sb_publishable_RGDnMjtHRUmhPaR0ty1i9g_xHCbXL9C');
+
+// ── SVG bar icons ──
+const S1 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2" opacity=".18"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
+const S2 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2"/><rect x="18" y="0" width="6" height="18" rx="1.2" opacity=".18"/></svg>';
+const S3 = '<svg width="24" height="18" viewBox="0 0 24 18" fill="currentColor"><rect x="0" y="10" width="6" height="8" rx="1.2"/><rect x="9" y="5" width="6" height="13" rx="1.2"/><rect x="18" y="0" width="6" height="18" rx="1.2"/></svg>';
+
+
+// ── Language ──
+let LANG = 'es';
+
+const T = {
+  es: {
+    title:'Baker de Fragiles 2.0', subtitle:'Evaluación de Equipamiento',
+    infoTitle:'Información de la Evaluación',
+    evaluador:'Evaluador', evaluadorPh:'Tu nombre completo',
+    fecha:'Fecha', sitio:'Sitio / Almacén', sitioPh:'Ej: CD São Paulo', pais:'País',
+    itensEval:'Ítems evaluados', items:'ítems', items2:'ítems', item1:'ítem',
+    secEq:'Equipo Estándar', secEs:'Estructura', secPi:'Pintura',
+    referencia:'Referencia',
+    resultado:'Resultado de la Evaluación',
+    lblEq:'Equipo Estándar (60%)', lblEs:'Estructura (40%)',
+    evalFinal:'Evaluación Final',
+    scaleNote:'0%–40% Reprobado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprobado',
+    finalizar:'Finalizar evaluación',
+    malo:'Malo', interm:'Interm.', excel:'Excel.',
+    herramienta:'Herramienta', comentarios:'Comentarios',
+    obsPlaceholder:'Observaciones...', fotos:'Fotos',
+    addMedia:'Agregar fotos o videos', refLabel:'Referencia del patrón',
+    verdicts:{ rep:'Reprobado', aj:'Ajustes', ap:'Aprobado' },
+    modalTipoTitle:'Tipo de Evaluación', modalTipoDesc:'Seleccione antes de iniciar la inspección',
+    tipoProto:'Prototipo', tipoMass:'Entrega Masiva',
+    fornecedorLabel:'Nombre del Proveedor', fornecedorPh:'Ej: Empresa XYZ Ltda',
+    emailFornecedorLabel:'E-mail del Proveedor', emailFornecedorPh:'Ej: contacto@proveedor.com',
+    iniciarAval:'Iniciar Evaluación',
+    tipoProtoDesc:'Nuevo equipamiento de un nuevo proveedor',
+    tipoMassDesc:'Entrega de lote de unidades con un proveedor ya homologado'
+  },
+  pt: {
+    title:'Baker de Fragiles 2.0', subtitle:'Avaliação de Equipamentos',
+    infoTitle:'Informações da Avaliação',
+    evaluador:'Avaliador', evaluadorPh:'Seu nome completo',
+    fecha:'Data', sitio:'Site / Armazém', sitioPh:'Ex: CD São Paulo', pais:'País',
+    itensEval:'Itens avaliados', items:'itens', items2:'itens', item1:'item',
+    secEq:'Equipamento Padrão', secEs:'Estrutura', secPi:'Pintura',
+    referencia:'Referência',
+    resultado:'Resultado da Avaliação',
+    lblEq:'Equipamento Padrão (60%)', lblEs:'Estrutura (40%)',
+    evalFinal:'Avaliação Final',
+    scaleNote:'0%–40% Reprovado &nbsp;·&nbsp; 41%–80% Realizar ajustes &nbsp;·&nbsp; 81%–100% Aprovado',
+    finalizar:'Finalizar avaliação',
+    malo:'Ruim', interm:'Méd.', excel:'Exce.',
+    herramienta:'Ferramenta', comentarios:'Comentários',
+    obsPlaceholder:'Observações...', fotos:'Fotos',
+    addMedia:'Adicionar fotos ou vídeos', refLabel:'Referência do padrão',
+    verdicts:{ rep:'Reprovado', aj:'Ajustes', ap:'Aprovado' },
+    modalTipoTitle:'Tipo de Avaliação', modalTipoDesc:'Selecione antes de iniciar a inspeção',
+    tipoProto:'Protótipo', tipoMass:'Entrega Massiva',
+    fornecedorLabel:'Nome do Fornecedor', fornecedorPh:'Ex: Empresa XYZ Ltda',
+    emailFornecedorLabel:'E-mail do Fornecedor', emailFornecedorPh:'Ex: contato@fornecedor.com',
+    iniciarAval:'Iniciar Avaliação',
+    tipoProtoDesc:'Novo equipamento de um novo fornecedor',
+    tipoMassDesc:'Entrega de lote de unidades com um fornecedor já homologado'
+  }
+};
+
+const ITEMS_PT = {
+  eq: [
+    { n:1, t:'Dimensões gerais',
+      s:'Conferir dimensões no Plano Técnico',
+      c:'Excelente: Dentro da tolerância ±1%–4%\n  Tolerância ±4%\n\nIntermediário: Desvio entre 5% e 14%\n  Qualquer dimensão entre ±5% e ±14% do nominal\n\nRuim: Desvio >15% em qualquer dimensão\n\nComprimento total com rampa: 1847mm (referência)\nLargura útil interna: 1200mm · Altura entre prateleiras: 450/450/400mm\n\nRegra: Se uma medida cai em Intermediário → nota Intermediário.\nSe ultrapassar ±15% em qualquer dimensão → Ruim.',
+      h:'Fita métrica · Trena · Régua do celular', v:[] },
+    { n:2, t:'Freio de Piso',
+      s:'Existência e funcionamento correto',
+      c:'Verificar a presença do freio de piso nas rodas.\n\nRuim: Freio ausente ou totalmente inoperante (não freia a roda).\nIntermediário: Freio presente mas com acionamento difícil, desgaste visível ou retenção parcial.\nExcelente: Freio presente, acionamento suave e retém completamente a roda ao ser ativado.\n\nNota: Pode haver variação entre modelos de freio. Avaliar funcionamento, não o modelo específico.',
+      h:'Teste manual de acionamento', v:[] },
+    { n:3, t:'Enganche de Arraste com Mola',
+      s:'Mecanismo de engate com mola de retorno',
+      c:'Verificar a existência e funcionamento do enganche de arraste com mola.\n\nRuim: Enganche ausente ou mola quebrada/inexistente — o mecanismo não retorna à posição de bloqueio.\nIntermediário: Enganche presente mas a mola tem força reduzida ou o acoplamento apresenta folga excessiva.\nExcelente: Enganche presente e funcional, mola com tensão adequada, acoplamento firme e retorno automático correto.',
+      h:'Teste manual de engate e retorno', v:[] },
+    { n:4, t:'Manija Movile',
+      s:'Ergonomia, fixação e deslocamento correto',
+      c:'Verificar a manija movível do equipamento.\n\nRuim: Manija ausente, soldada fixa (não movível) ou deslocamento bloqueado.\nIntermediário: Manija presente e movível, mas com folga excessiva, resistência ao deslizamento ou posição não ergonômica.\nExcelente: Manija movível, desliza livremente, ergonomia correta, sem folga estrutural.',
+      h:'Teste manual de deslocamento', v:[] },
+    { n:5, t:'Bumper / Esquineros de Proteção',
+      s:'Proteção de cantos nas 4 esquinas',
+      c:'Verificar a presença de bumpers ou esquineros de proteção.\n\nRuim: Ausência de proteção em ≥2 esquinas ou proteção severamente danificada.\nIntermediário: Proteção presente em todas as esquinas mas com desgaste visível, fissuras ou fixação deficiente em alguma esquina.\nExcelente: Proteção presente e em perfeito estado nas 4 esquinas, bem fixada e sem deformações.',
+      h:'Avaliação visual', v:[] },
+    { n:6, t:'Rodilhos',
+      s:'Estado e funcionamento dos rodilhos das prateleiras',
+      c:'Verificar o estado dos rodilhos instalados nas prateleiras/trilhos do equipamento.\n\nRuim: Rodilhos ausentes, bloqueados ou com deformação que impede o deslizamento de pacotes.\nIntermediário: Rodilhos presentes mas com resistência ao giro, desgaste visível ou rodilhos soltos (sem dano no eixo).\nExcelente: Todos os rodilhos giram livremente, sem folga excessiva, sem deformações e sem ferrugem significativa.',
+      h:'Teste manual — girar cada rodilho', v:[] },
+    { n:7, t:'Rampa com Roletes',
+      s:'Estado e inclinação correta da rampa de acesso',
+      c:'Verificar a rampa de entrada com roletes para carga/descarga de caixas.\n\nDimensão de referência: 1847mm comprimento total · 1400mm largura útil\n\nRuim: Rampa ausente, deformada ou roletes bloqueados impedindo o deslizamento.\nIntermediário: Rampa presente mas com alguns roletes danificados/travados, deformação menor ou ângulo de inclinação que dificulta o fluxo.\nExcelente: Rampa com inclinação correta, todos os roletes girando livremente, sem deformações.',
+      h:'Teste manual — deslizar caixa de referência', v:[] },
+    { n:8, t:'Trilhos com Roletes',
+      s:'Alinhamento e funcionamento dos trilhos da prateleira',
+      c:'Verificar os trilhos com roletes das prateleiras intermediárias.\n\nRuim: Trilhos ausentes ou desalinhados de forma que impedem o uso da prateleira.\nIntermediário: Trilhos presentes mas com roletes parcialmente bloqueados, leve desalinhamento ou solda com pequenos defeitos.\nExcelente: Trilhos bem alinhados, todos os roletes girando livremente, sem corrosão significativa.',
+      h:'Teste manual — deslizar objeto de referência nos trilhos', v:[] },
+  ],
+  es: [
+    { n:9, t:'Soldas e Acabamento Estrutural',
+      s:'Solda contínua, uniforme e sem bordas cortantes',
+      c:'Analisar a qualidade das soldas em todos os pontos de união da estrutura.\n\nRuim: Soldas com porosidade, fissuras, falta de fusão ou bordas cortantes que representem risco de acidentes.\nIntermediário: Soldas com irregularidades menores (pequenos respingos, interrupções pontuais) mas sem fissuras estruturais.\nExcelente: Solda contínua, uniforme, sem porosidade, sem fissuras e sem bordas cortantes. Reforço estrutural corretamente aplicado.',
+      h:'Avaliação visual em todos os pontos de união', v:[] },
+    { n:10, t:'Tubos 20×20×1,2mm',
+      s:'Especificação de material: tubos quadrados 20×20×1,2mm',
+      c:'Verificar se os tubos utilizados na estrutura correspondem à especificação 20×20×1,2mm.\n\nRuim: Tubos com dimensões claramente fora da especificação ou com espessura visivelmente insuficiente.\nIntermediário: Tubos com dimensões aproximadas mas com variação >10% ou sem indicação de especificação.\nExcelente: Tubos com seção 20×20mm e espessura 1,2mm, conforme com a especificação do projeto.',
+      h:'Calibre / Paquímetro (solicitar à manutenção)', v:[] },
+    { n:11, t:'Reforço para Estrutura',
+      s:'Existência e integridade do reforço estrutural superior',
+      c:'Verificar a presença do reforço para a estrutura (parte superior do equipamento).\n\nRuim: Reforço ausente ou com fissuras/ruptura que comprometem a integridade estrutural.\nIntermediário: Reforço presente mas com deformação menor, solda irregular ou fixação deficiente.\nExcelente: Reforço presente, bem soldado, sem deformações e com integridade estrutural completa.',
+      h:'Avaliação visual e teste de rigidez manual', v:[] },
+    { n:12, t:'Rodas — Configuração e Tamanho',
+      s:'2 rodas fixas (frente) + 2 giratórias (lado manija) · 6"',
+      c:'Verificar a configuração correta das 4 rodas.\n\nConfiguração correta:\n• FRENTE do equipamento: 2 RODAS FIXAS\n• LADO DA MANIJA: 2 RODAS GIRATÓRIAS\n\nTamanho padrão: 6 polegadas (≈152mm de diâmetro)\n\nRuim: Configuração invertida, rodas de tamanho incorreto ou ≥2 rodas em mau estado.\nIntermediário: Configuração correta mas tamanho levemente diferente ou 1 roda com rolamento danificado.\nExcelente: 2 fixas na frente, 2 giratórias no lado da manija, todas de 6" e em perfeito estado.',
+      h:'Avaliação visual e teste de rotação', v:[] },
+    { n:13, t:'Porcas Soldadas — Placa de Fixação',
+      s:'Porcas soldadas na placa de fixação das rodas',
+      c:'Verificar a presença e estado das porcas soldadas na placa de fixação das rodas.\n\nRuim: Porcas ausentes, soltas ou com corrosão avançada que impede a rosca correta.\nIntermediário: Porcas presentes e aderidas mas com solda irregular, corrosão superficial ou aperto comprometido.\nExcelente: Todas as porcas presentes, bem soldadas, sem corrosão que comprometa a rosca e com fixação firme das rodas.',
+      h:'Avaliação visual e teste de aperto manual', v:[] },
+  ],
+  pi: [
+    { n:14, t:'Cor da Pintura',
+      s:'Cinza escuro uniforme · Sem oxidação ou descascamento',
+      c:'Verificar a cor e estado da pintura do equipamento.\n\nRuim: Pintura com cor diferente ao padrão, oxidação generalizada ou descascamento em >20% da superfície.\nIntermediário: Cor correta mas com descascamento pontual (<20%), riscos profundos ou áreas com início de oxidação.\nExcelente: Cinza escuro uniforme conforme ao padrão, sem oxidação visível, sem descascamento relevante.',
+      h:'Avaliação visual', v:[] }
+  ]
+};
+
+function switchLang(lang) {
+  LANG = lang;
+  // Toggle button styles
+  document.getElementById('btn-pt').classList.toggle('act', lang==='pt');
+  document.getElementById('btn-es').classList.toggle('act', lang==='es');
+  // Update all data-i18n elements
+  const t = T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t[k] !== undefined) el.innerHTML = t[k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const k = el.getAttribute('data-i18n-ph');
+    if (t[k] !== undefined) el.placeholder = t[k];
+  });
+  // Re-render all items
+  const src = lang === 'pt' ? ITEMS_PT : ITEMS;
+  Object.entries(src).forEach(([sec, items]) => {
+    const bd = document.getElementById('bd-'+sec);
+    // Copy videos from ITEMS (same in both langs)
+    const itemsWithV = items.map((it,i) => Object.assign({}, it, {v: ITEMS[sec][i].v}));
+    bd.innerHTML = itemsWithV.map((it,i) => buildItem(it,sec,i)).join('');
+    // Restore ratings
+    R[sec].forEach((val,i) => {
+      if (val !== null) {
+        const btns = bd.querySelectorAll('.item');
+        if (btns[i]) {
+          const btn = btns[i].querySelector('.rb.'+val);
+          if (btn) btn.classList.add('sel');
+        }
+      }
+    });
+  });
+  // Update page title
+  document.title = t.title + ' — Mercado Libre';
+}
+
+// ── Item data ──
+const ITEMS = {
+  eq: [
+    { n:1, t:'Dimensiones generales',
+      s:'Conferir dimensões no Plano Técnico',
+      c:'Excelente: Dentro de la tolerancia ±1%–4%\n  Tolerância ±4%\n\nIntermedio: Desviación 5%–14%\n  Cualquier dimensión entre ±5% y ±14% del nominal\n\nMalo: Desviación >15% en cualquier dimensión\n\nLongitud total con rampa: 1847mm (referencia)\nAncho útil interior: 1200mm · Altura entre prateleiras: 450/450/400mm\n\nRegla: Si una medida cae en Intermedio → calificación Intermedio.\nSi supera ±15% en cualquier dimensión → Malo.',
+      h:'Cinta métrica · Flexómetro · Regla del celular', v:[] },
+    { n:2, t:'Freno de Piso',
+      s:'Existencia y funcionamiento correcto',
+      c:'Verificar la presencia del freno de piso en las ruedas.\n\nMalo: Freno ausente o totalmente inoperante (no frena la rueda).\nIntermedio: Freno presente pero con accionamiento dificultoso, desgaste visible o retención parcial.\nExcelente: Freno presente, accionamiento suave y retiene completamente la rueda al activarse.\n\nNota: Puede haber variación entre modelos de freno. Evaluar funcionamiento, no el modelo específico.',
+      h:'Prueba manual de accionamiento', v:[] },
+    { n:3, t:'Enganche de Arrastre com Resorte',
+      s:'Mecanismo de enganche con resorte de retorno',
+      c:'Verificar la existencia y funcionamiento del enganche de arrastre con resorte.\n\nMalo: Enganche ausente o resorte roto/inexistente — el mecanismo no retorna a la posición de bloqueo.\nIntermedio: Enganche presente pero el resorte tiene fuerza reducida o el acoplamiento presenta juego excesivo.\nExcelente: Enganche presente y funcional, resorte con tensión adecuada, acoplamiento firme y retorno automático correcto.',
+      h:'Prueba manual de enganche y retorno', v:[] },
+    { n:4, t:'Manija Movile',
+      s:'Ergonomía, fijación y desplazamiento correcto',
+      c:'Verificar la manija movible del equipo.\n\nMalo: Manija ausente, soldada fija (no movible) o desplazamiento bloqueado.\nIntermedio: Manija presente y movible, pero con juego excesivo, resistencia al deslizamiento o posición no ergonómica.\nExcelente: Manija movible, desliza libremente, ergonomía correcta, sin juego estructural.',
+      h:'Prueba manual de desplazamiento', v:[] },
+    { n:5, t:'Bumper / Esquineros de Protección',
+      s:'Protección de cantos en las 4 esquinas',
+      c:'Verificar la presencia de bumpers o esquineros de protección.\n\nMalo: Ausencia de protección en ≥2 esquinas o protección severamente dañada.\nIntermedio: Protección presente en todas las esquinas pero con desgaste visible, fisuras o fijación deficiente en alguna esquina.\nExcelente: Protección presente y en perfecto estado en las 4 esquinas, bien fijada y sin deformaciones.',
+      h:'Evaluación visual', v:[] },
+    { n:6, t:'Rodillos',
+      s:'Estado y funcionamiento de los rodillos de las prateleiras',
+      c:'Verificar el estado de los rodillos instalados en las prateleiras/rieles del equipo.\n\nMalo: Rodillos ausentes, bloqueados o con deformación que impide el deslizamiento de paquetes.\nIntermedio: Rodillos presentes pero con resistencia al giro, desgaste visible o rodillos sueltos (sin daño en el eje).\nExcelente: Todos los rodillos giran libremente, sin juego excesivo, sin deformaciones y sin óxido significativo.',
+      h:'Prueba manual — girar cada rodillo', v:[] },
+    { n:7, t:'Rampa com Roletes',
+      s:'Estado e inclinación correcta de la rampa de acceso',
+      c:'Verificar la rampa de entrada con roletes para carga/descarga de cajas.\n\nDimensión de referencia: 1847mm comprimento total · 1400mm ancho útil\n\nMalo: Rampa ausente, deformada o roletes bloqueados impidiendo el deslizamiento.\nIntermedio: Rampa presente pero con algunos roletes dañados/trabados, deformación menor o ángulo de inclinación que dificulta el flujo.\nExcelente: Rampa con inclinación correcta, todos los roletes girando libremente, sin deformaciones.',
+      h:'Prueba manual — deslizar caja de referencia', v:[] },
+    { n:8, t:'Rieles con Rodillos',
+      s:'Alineación y funcionamiento de los rieles de prateleira',
+      c:'Verificar los rieles con rodillos de las prateleiras intermedias.\n\nMalo: Rieles ausentes o desalineados de forma que impiden el uso de la prateleira.\nIntermedio: Rieles presentes pero con roletes parcialmente bloqueados, ligera desalineación o soldadura con pequeños defectos.\nExcelente: Rieles bien alineados, todos los roletes girando libremente, sin corrosión significativa.',
+      h:'Prueba manual — deslizar objeto de referencia en los rieles', v:[] },
+  ],
+  es: [
+    { n:9, t:'Soldaduras y Acabado Estructural',
+      s:'Soldadura continua, uniforme y sin bordes cortantes',
+      c:'Analizar la calidad de soldaduras en todos los puntos de unión de la estructura.\n\nMalo: Soldaduras con porosidad, fisuras, falta de fusión o bordes cortantes que representen riesgo de accidentes.\nIntermedio: Soldaduras con irregularidades menores (pequeñas salpicaduras, interrupciones puntuales) pero sin fisuras estructurales.\nExcelente: Soldadura continua, uniforme, sin porosidad, sin fisuras y sin bordes cortantes. Refuerzo estructural correctamente aplicado.',
+      h:'Evaluación visual en todos los puntos de unión', v:[] },
+    { n:10, t:'Tubos 20×20×1,2mm',
+      s:'Especificación de material: tubos cuadrados 20×20×1,2mm',
+      c:'Verificar si los tubos utilizados en la estructura corresponden a la especificación 20×20×1,2mm.\n\nMalo: Tubos con dimensiones claramente fuera de la especificación o con espesor visiblemente insuficiente (deformación bajo carga).\nIntermedio: Tubos con dimensiones aproximadas pero con variación >10% o sin indicación de especificación.\nExcelente: Tubos con 20×20mm sección y 1,2mm de espesor, conforme con la especificación del proyecto.',
+      h:'Calibre / Paquímetro (solicitar a mantenimiento)', v:[] },
+    { n:11, t:'Refuerzo para Estructura',
+      s:'Existencia e integridad del refuerzo estructural superior',
+      c:'Verificar la presencia del refuerzo para la estructura (parte superior del equipo, indicado en el dibujo técnico).\n\nMalo: Refuerzo ausente o con fisuras/rotura que comprometen la integridad estructural.\nIntermedio: Refuerzo presente pero con deformación menor, soldadura irregular o fijación deficiente.\nExcelente: Refuerzo presente, bien soldado, sin deformaciones y con integridad estructural completa.',
+      h:'Evaluación visual y test de rigidez manual', v:[] },
+    { n:12, t:'Ruedas — Configuración y Tamaño',
+      s:'2 ruedas fijas (frente) + 2 giratorias (lado manija) · 6"',
+      c:'Verificar la configuración correcta de las 4 ruedas.\n\nConfiguracion correcta:\n• FRENTE del equipo: 2 RUEDAS FIJAS\n• LADO DE LA MANIJA: 2 RUEDAS GIRATORIAS\n\nTamaño estándar: 6 pulgadas (≈152mm de diámetro)\n\nMalo: Configuración invertida, ruedas de tamaño incorrecto o ≥2 ruedas en mal estado.\nIntermedio: Configuración correcta pero tamaño levemente diferente o 1 rueda con rodamiento dañado.\nExcelente: 2 fijas al frente, 2 giratorias en el lado de la manija, todas de 6" y en perfecto estado.',
+      h:'Evaluación visual y prueba de rotación', v:[] },
+    { n:13, t:'Tuercas Soldadas — Placa de Fijación',
+      s:'Tuercas soldadas en la placa de fijación de las ruedas',
+      c:'Verificar la presencia y estado de las tuercas soldadas en la placa de fijación de las ruedas.\n\nMalo: Tuercas ausentes, sueltas o con corrosión avanzada que impide el roscado correcto.\nIntermedio: Tuercas presentes y adheridas pero con soldadura irregular, corrosión superficial o apriete comprometido.\nExcelente: Todas las tuercas presentes, bien soldadas, sin corrosión que comprometa el roscado y con fijación firme de las ruedas.',
+      h:'Evaluación visual y prueba de apriete manual', v:[] },
+  ],
+  pi: [
+    { n:14, t:'Color de Pintura',
+      s:'Gris oscuro uniforme · Sin oxidación ni descascaramiento',
+      c:'Verificar el color y estado de la pintura del equipo.\n\nMalo: Pintura con color diferente al estándar, oxidación generalizada o descascaramiento en >20% de la superficie.\nIntermedio: Color correcto pero con descascaramiento puntual (<20%), rayones profundos o áreas con inicio de oxidación.\nExcelente: Color gris oscuro uniforme conforme al patrón, sin oxidación visible, sin descascaramiento relevante.',
+      h:'Evaluación visual', v:[] }
+  ]
+};
+
+// ── State ──
+const R = { eq: new Array(8).fill(null), es: new Array(5).fill(null), pi: new Array(1).fill(null) };
+const SM = { malo:.25, intermedio:.65, excelente:1 };
+
+
+// ── Ref photos per item ──
+const REF_IMGS = {};
+
+// ── Build items ──
+function buildItem(item, sec, idx) {
+  const key = sec+'_'+idx;
+  const refImgs = REF_IMGS[key] || [];
+  const refHtml = refImgs.length ? `
+    <div class="ref-photos">
+      <div class="ref-label">${T[LANG].refLabel}</div>
+      <div class="ref-row">${refImgs.map((src,i) => `<img class="ref-img" src="${src}" alt="ref ${i+1}" onclick="openLightbox('${src}')">`).join('')}</div>
+    </div>` : '';
+  const vchips = (item.v||[]).map(v => {
+    if (v.u) {
+      return `<a class="vchip" href="${v.u}" target="_blank" rel="noopener"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${v.n}</a>`;
+    }
+    return `<div class="vchip"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${v.n}</div>`;
+  }).join('');
+  const sugg = item.sugg ? `<div class="sugg">${item.sugg}</div>` : '';
+  return `
+  <div class="item">
+    <div class="item-hdr" onclick="toggleItem(this)">
+      <div class="item-num">${item.n}</div>
+      <div class="item-main">
+        <div class="item-title">${item.t}</div>
+        <div class="item-sub">${item.s}</div>
+      </div>
+      <div class="rating-inline" onclick="event.stopPropagation()">
+        <button class="rb malo"       onclick="rate('${sec}',${idx},'malo',this)">${S1}<span class="rb-lbl">${T[LANG].malo}</span></button>
+        <button class="rb intermedio" onclick="rate('${sec}',${idx},'intermedio',this)">${S2}<span class="rb-lbl">${T[LANG].interm}</span></button>
+        <button class="rb excelente"  onclick="rate('${sec}',${idx},'excelente',this)">${S3}<span class="rb-lbl">${T[LANG].excel}</span></button>
+      </div>
+      <div class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></div>
+    </div>
+    <div class="item-detail">
+      ${refHtml}
+      <div class="crit">${item.c}</div>
+      <div class="tool"><div class="tool-lbl">${T[LANG].herramienta}</div>${item.h}</div>
+      ${vchips ? `<div class="media-row">${vchips}</div>` : ''}
+      ${sugg}
+      <div class="cmnt"><label>${T[LANG].comentarios}</label><textarea placeholder="${T[LANG].obsPlaceholder}"></textarea></div>
+      <div class="photos"><label>${T[LANG].fotos}</label>
+        <div class="pdrop" onclick="this.querySelector('input').click()">
+          <input type="file" accept="image/*,video/*" multiple onchange="previewF(this)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <div class="pdrop-txt">${T[LANG].addMedia}</div>
+        </div>
+        <div class="ppreview"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+Object.entries(ITEMS).forEach(([sec, items]) => {
+  document.getElementById('bd-'+sec).innerHTML = items.map((it,i) => buildItem(it,sec,i)).join('');
+});
+
+// ── Toggle section ──
+function toggleSec(id, hdr) {
+  const bd = document.getElementById('bd-'+id);
+  const chev = hdr.querySelector('.sec-chev');
+  const open = bd.style.display !== 'none';
+  bd.style.display = open ? 'none' : 'block';
+  chev.classList.toggle('open', !open);
+}
+
+// ── Toggle item ──
+function toggleItem(hdr) {
+  const det = hdr.nextElementSibling;
+  const chev = hdr.querySelector('.chev');
+  det.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+// ── Rate with toggle ──
+function rate(sec, idx, val, btn) {
+  if (btn.classList.contains('sel')) {
+    R[sec][idx] = null;
+    btn.classList.remove('sel');
+    calcAll();
+    return;
+  }
+  R[sec][idx] = val;
+  btn.closest('.rating-inline').querySelectorAll('.rb').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  calcAll();
+  // Auto-advance: close current item, open next
+  const currentHdr = btn.closest('.item-hdr');
+  if (currentHdr) {
+    const currentDet = currentHdr.nextElementSibling;
+    if (currentDet && currentDet.classList.contains('open')) {
+      currentDet.classList.remove('open');
+      const chev = currentHdr.querySelector('.chev');
+      if (chev) chev.classList.remove('open');
+    }
+    const nextItem = currentHdr.closest('.item').nextElementSibling;
+    if (nextItem && nextItem.classList.contains('item')) {
+      const nextHdr = nextItem.querySelector('.item-hdr');
+      const nextDet = nextItem.querySelector('.item-detail');
+      if (nextHdr && nextDet && !nextDet.classList.contains('open')) {
+        nextDet.classList.add('open');
+        const nextChev = nextHdr.querySelector('.chev');
+        if (nextChev) nextChev.classList.add('open');
+        setTimeout(() => nextHdr.scrollIntoView({behavior:'smooth', block:'nearest'}), 80);
+      }
+    }
+  }
+}
+
+// ── Calc ──
+function avg(sec) {
+  const vals = R[sec].filter(v => v !== null);
+  if (!vals.length) return null;
+  return vals.reduce((a,v) => a + SM[v], 0) / vals.length;
+}
+
+function setBar(id, score) {
+  const bar = document.getElementById('bar-'+id);
+  const val = document.getElementById('val-'+id);
+  const bdg = document.getElementById('sc-'+id);
+  if (score === null) {
+    bar.style.width = '0%'; val.textContent = '—'; val.style.color = '#999';
+    if (bdg) bdg.textContent = '—'; return;
+  }
+  const p = Math.round(score * 100);
+  const c = p<=40 ? 'var(--bad)' : p<=80 ? 'var(--mid)' : 'var(--ok)';
+  bar.style.width = p+'%'; bar.style.background = c;
+  val.textContent = p+'%'; val.style.color = c;
+  if (bdg) bdg.textContent = p+'%';
+}
+
+function calcAll() {
+  const eq = avg('eq'), es = avg('es');
+  setBar('eq', eq); setBar('es', es);
+
+  const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
+  document.getElementById('pFill').style.width = (done/14*100)+'%';
+  document.getElementById('pCount').textContent = done+' / 14';
+
+  let fin = null;
+  if (eq!==null && es!==null) fin = eq*.6 + es*.4;
+  else if (eq!==null) fin = eq*.6;
+  else if (es!==null) fin = es*.4;
+
+  if (fin !== null) {
+    const p = Math.round(fin*100);
+    document.getElementById('val-tot').textContent = p+'%';
+    document.getElementById('hdrVal').textContent = p+'%';
+    const vd = T[LANG].verdicts; const [txt,cls] = p<=40 ? [vd.rep,'v-rep'] : p<=80 ? [vd.aj,'v-aj'] : [vd.ap,'v-ap'];
+    const v = document.getElementById('vdict');
+    v.textContent = txt; v.className = 'verdict '+cls;
+  } else {
+    document.getElementById('val-tot').textContent = '—';
+    document.getElementById('hdrVal').textContent = '—';
+    document.getElementById('vdict').textContent = '';
+  }
+}
+
+// ── Photos ──
+function previewF(input) {
+  const prev = input.closest('.photos').querySelector('.ppreview');
+  Array.from(input.files).forEach(f => {
+    if (f.type.startsWith('image/')) {
+      const r = new FileReader();
+      r.onload = e => {
+        const t = document.createElement('div'); t.className = 'pthumb';
+        t.innerHTML = '<img src="'+e.target.result+'"><button class="prm" onclick="this.parentElement.remove()">×</button>';
+        prev.appendChild(t);
+      };
+      r.readAsDataURL(f);
+    } else {
+      // Video — store File reference directly on the element for upload
+      const sizeMB = (f.size / 1024 / 1024).toFixed(0);
+      const t = document.createElement('div'); t.className = 'pthumb video-thumb';
+      t.style.cssText = 'background:#1A1A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px';
+      t.innerHTML = '<span style="color:#FFE600;font-size:18px">▶</span><span style="color:#FFE600;font-size:7px;text-align:center;padding:0 3px;word-break:break-all">'+f.name.slice(0,12)+'</span><span style="color:#aaa;font-size:7px">'+sizeMB+'MB</span><button class="prm" onclick="this.parentElement.remove()">×</button>';
+      t._videoFile = f; // keep File reference for upload
+      prev.appendChild(t);
+    }
+  });
+}
+
+// ── Export ──
+function exportData() {
+  const d = {
+    evaluador: document.getElementById('evaluador').value,
+    fecha: document.getElementById('fecha').value,
+    equipoId: document.getElementById('equipoId').value,
+    sitio: document.getElementById('sitio').value,
+    ratings: R, scores: {equipo: avg('eq'), estructura: avg('es')},
+    timestamp: new Date().toISOString()
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+  a.download = 'checklist-bk-'+(d.equipoId||'eval')+'.json';
+  a.click();
+}
+
+// ── Finalize + Save to Supabase ──
+function showValidationToast(msg, items) {
+  document.getElementById('valToastMsg').textContent = msg;
+  document.getElementById('valToastList').innerHTML = items.map(i => '• ' + i).join('<br>');
+  const t = document.getElementById('valToast');
+  t.classList.remove('show');
+  void t.offsetWidth; // force reflow
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 6000);
+  // Scroll to first problematic item in the list (if it mentions a number)
+  const firstNum = items[0]?.match(/^(\d+)\./);
+  if (firstNum) {
+    const idx = parseInt(firstNum[1]) - 1;
+    const el = document.querySelectorAll('.item')[idx];
+    if (el) {
+      el.querySelector('.item-detail')?.classList.add('open');
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  }
+}
+
+async function finalize() {
+  const t = T[LANG];
+  const done = ['eq','es','pi'].reduce((a,s) => a + R[s].filter(v=>v!==null).length, 0);
+  if (done < 14) {
+    showValidationToast(
+      LANG==='pt' ? 'Avaliação incompleta' : 'Evaluación incompleta',
+      [LANG==='pt' ? 'Faltam '+(14-done)+' item(ns) por avaliar.' : 'Faltan '+(14-done)+' ítem(s) por evaluar.']
+    );
+    return;
+  }
+
+  // ── Validate required header fields ──
+  const evaluadorVal = document.getElementById('evaluador').value.trim();
+  const sitioVal = document.getElementById('sitio').value.trim();
+  const paisVal = document.getElementById('pais').value.trim();
+  if (!evaluadorVal || !sitioVal || !paisVal) {
+    const missing = [];
+    if (!evaluadorVal) missing.push(LANG==='pt' ? 'Nome do avaliador é obrigatório.' : 'El nombre del evaluador es obligatorio.');
+    if (!sitioVal) missing.push(LANG==='pt' ? 'Site / Operação é obrigatório.' : 'El sitio / operación es obligatorio.');
+    if (!paisVal) missing.push(LANG==='pt' ? 'País é obrigatório.' : 'El país es obligatorio.');
+    document.getElementById('evaluador').style.borderColor = evaluadorVal ? '' : 'var(--bad)';
+    document.getElementById('sitio').style.borderColor = sitioVal ? '' : 'var(--bad)';
+    document.getElementById('pais').style.borderColor = paisVal ? '' : 'var(--bad)';
+    showValidationToast(LANG==='pt' ? 'Campos obrigatórios' : 'Campos obligatorios', missing);
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+  document.getElementById('evaluador').style.borderColor = '';
+  document.getElementById('sitio').style.borderColor = '';
+  document.getElementById('pais').style.borderColor = '';
+
+  // Collect comments
+  const comentarios = {};
+  document.querySelectorAll('.item').forEach((el, i) => {
+    const ta = el.querySelector('textarea');
+    if (ta && ta.value.trim()) comentarios[i] = ta.value.trim();
+  });
+
+  // ── Validate: ALL rated items must have comment or photo ──
+  const allItems = document.querySelectorAll('.item');
+  const secs = [
+    { key:'eq', offset:0  },
+    { key:'es', offset:8  },
+    { key:'pi', offset:13 }
+  ];
+  const missing = [];
+  secs.forEach(({ key, offset }) => {
+    R[key].forEach((val, i) => {
+      if (val === null) return; // não avaliado ainda, pula
+      const el = allItems[offset + i];
+      if (!el) return;
+      const hasComment = !!(el.querySelector('textarea')?.value.trim().length > 0);
+      const hasPhoto   = el.querySelectorAll('.ppreview img').length > 0 || el.querySelectorAll('.ppreview .video-thumb').length > 0;
+      if (!hasComment && !hasPhoto) {
+        const title = el.querySelector('.item-title')?.textContent || ('Item ' + (offset+i+1));
+        missing.push((offset+i+1) + '. ' + title);
+      }
+    });
+  });
+  if (missing.length > 0) {
+    showValidationToast(
+      LANG==='pt'
+        ? 'Todos os itens precisam de comentário ou foto:'
+        : 'Todos los ítems requieren comentario o foto:',
+      missing
+    );
+    return;
+  }
+
+  // Build payload
+  const eq = avg('eq'), es = avg('es');
+  const fin = eq !== null && es !== null ? eq*.6 + es*.4 : eq !== null ? eq*.6 : es*.4;
+  const p = Math.round(fin * 100);
+  const vd = T[LANG].verdicts;
+  const veredicto = p<=40 ? vd.rep : p<=80 ? vd.aj : vd.ap;
+  const evaluador = document.getElementById('evaluador').value || null;
+  const sitio = document.getElementById('sitio').value || null;
+
+  const payload = {
+    evaluador: evaluador,
+    fecha: document.getElementById('fecha').value || null,
+    sitio: sitio,
+    pais: document.getElementById('pais').value || null,
+    idioma: LANG,
+    score_eq: eq !== null ? Math.round(eq*100) : null,
+    score_es: es !== null ? Math.round(es*100) : null,
+    score_final: p,
+    veredicto: veredicto,
+    ratings: { eq: R.eq, es: R.es, pi: R.pi },
+    comentarios: comentarios,
+    fotos: [],
+    equipo_tipo: 'BK Fragiles 2.0',
+    tipo_avaliacao: tipoAvaliacao,
+    fornecedor: fornecedorNome || null,
+    email_fornecedor: emailFornecedor || null
+  };
+
+  // Show saving indicator
+  const btn = document.querySelector('[data-i18n="finalizar"]');
+  const originalText = btn.textContent;
+  btn.textContent = LANG==='pt' ? 'Enviando...' : 'Enviando...';
+  btn.disabled = true;
+
+  try {
+    // ── Upload photos & videos per item (with label context) ──
+    // Build upload queue per item so we can tag each file with its item name
+    const uploadQueue = [];
+    const allItemEls  = document.querySelectorAll('.item');
+    const secDefs = [{ key:'eq', offset:0 }, { key:'es', offset:8 }, { key:'pi', offset:13 }];
+    secDefs.forEach(({ key, offset }) => {
+      R[key].forEach((val, idx) => {
+        if (val === null) return;
+        const el = allItemEls[offset + idx];
+        if (!el) return;
+        const itemTitle  = el.querySelector('.item-title')?.textContent?.trim() || ('Item ' + (offset+idx+1));
+        const itemNum    = offset + idx + 1;
+        const itemRating = val;
+        el.querySelectorAll('.ppreview img').forEach(img => {
+          uploadQueue.push({ type:'image', src:img.src, itemTitle, itemNum, itemRating });
+        });
+        el.querySelectorAll('.ppreview .video-thumb').forEach(thumb => {
+          if (thumb._videoFile) uploadQueue.push({ type:'video', file:thumb._videoFile, itemTitle, itemNum, itemRating });
+        });
+      });
+    });
+
+    const totalMedia = uploadQueue.length;
+    if (totalMedia > 0) {
+      btn.textContent = (LANG==='pt' ? 'Enviando mídia (0/' : 'Subiendo archivos (0/') + totalMedia + ')...';
+      let uploaded = 0;
+      const safeSitio = (sitio || 'sem-sitio').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+      const uploadPromises = uploadQueue.map(async (item, i) => {
+        try {
+          let publicUrl = null;
+          if (item.type === 'image') {
+            const src = item.src;
+            if (!src.startsWith('data:')) return;
+            const arr = src.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const ext  = mime.split('/')[1] || 'jpg';
+            const bstr = atob(arr[1]);
+            const u8arr = new Uint8Array(bstr.length);
+            for (let j = 0; j < bstr.length; j++) u8arr[j] = bstr.charCodeAt(j);
+            const blob = new Blob([u8arr], { type: mime });
+            const path = safeSitio + '/' + Date.now() + '_img' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, blob, { contentType: mime, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          } else {
+            const f = item.file;
+            const MAX_MB = 50;
+            if (f.size > MAX_MB * 1024 * 1024) { console.warn('Video >50MB, skipped:', f.name); return; }
+            const ext  = f.name.split('.').pop() || 'mp4';
+            const path = safeSitio + '/' + Date.now() + '_vid' + i + '.' + ext;
+            const { error: upErr } = await _sb.storage.from('avaliacoes-fotos').upload(path, f, { contentType: f.type, upsert: false });
+            if (!upErr) ({ data: { publicUrl } } = _sb.storage.from('avaliacoes-fotos').getPublicUrl(path));
+          }
+          if (publicUrl) {
+            payload.fotos.push({ url: publicUrl, item: item.itemTitle, num: item.itemNum, rating: item.itemRating, type: item.type });
+          }
+          uploaded++;
+          btn.textContent = (LANG==='pt' ? 'Enviando mídia (' : 'Subiendo archivos (') + uploaded + '/' + totalMedia + ')...';
+        } catch(e) { console.warn('Upload failed:', e); }
+      });
+
+      await Promise.all(uploadPromises);
+    }
+
+    btn.textContent = LANG==='pt' ? 'Salvando...' : 'Guardando...';
+    const { error } = await _sb.from('evaluaciones').insert([payload]);
+    if (error) throw error;
+
+    // ── Email notification: prototipo aprobado ──
+    if (tipoAvaliacao === 'prototipo' && p >= NOTA_CORTE_PROTOTIPO) {
+      try {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email:    NOTIFICATION_EMAILS.join(','),
+          reply_to:    evaluador || '',
+          subject:     'MTM | Prototipo Aprobado — ' + payload.equipo_tipo + ' | ' + (payload.fornecedor || 'N/A'),
+          equipo_tipo: payload.equipo_tipo,
+          fornecedor:  payload.fornecedor  || 'N/A',
+          score_final: p + '%',
+          score_eq:    payload.score_eq    !== null ? payload.score_eq + '%' : 'N/A',
+          score_es:    payload.score_es    !== null ? payload.score_es + '%' : 'N/A',
+          evaluador:   evaluador            || 'N/A',
+          sitio:       sitio                || 'N/A',
+          pais:        payload.pais         || 'N/A',
+          fecha:       payload.fecha        || new Date().toLocaleDateString('es'),
+          spec_url:    SPEC_URL
+        });
+        console.log('Notificación de prototipo aprobado enviada.');
+      } catch (emailErr) {
+        console.warn('Error al enviar notificación:', emailErr);
+        // No bloquea el flujo — evaluación ya guardada en Supabase
+      }
+    }
+
+    // ── Success: redirect to thank-you page ──
+    btn.textContent = LANG==='pt' ? '✓ Enviado!' : '✓ Enviado!';
+    btn.style.background = 'var(--ok)';
+    setTimeout(() => {
+      const params = new URLSearchParams({
+        lang: LANG,
+        score: p,
+        veredicto: veredicto,
+        evaluador: evaluador || '',
+        sitio: sitio || '',
+        tipo: tipoAvaliacao || '',
+        fornecedor: fornecedorNome || ''
+      });
+      window.location.href = 'obrigado.html?' + params.toString();
+    }, 900);
+
+  } catch(err) {
+    console.error(err);
+    btn.textContent = LANG==='pt' ? 'Erro ao salvar' : 'Error al guardar';
+    btn.style.background = 'var(--bad)';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 3000);
+  }
+}
+
+document.getElementById('fecha').valueAsDate = new Date();
+function openLightbox(src) {
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lb').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lb').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+
+  document.getElementById('fornecedor-input')?.addEventListener('input', checkIniciar);
+  document.getElementById('email-fornecedor-input')?.addEventListener('input', checkIniciar);
+</script>
+</body>
+</html>
